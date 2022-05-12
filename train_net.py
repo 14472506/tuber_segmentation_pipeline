@@ -16,7 +16,6 @@ from distutils.command.config import config
 import json
 from logging import root
 
-from sklearn.metrics import jaccard_score
 from engine import train_one_epoch
 from optimizer import optimizer_selector
 import torch 
@@ -29,9 +28,9 @@ import random
 from dataloader import COCOLoader, collate_function
 from models import model_selector
 from optimizer import optimizer_selector, lr_scheduler_selector
-from engine import train_one_epoch, validate_one_epoch, evaluate
+from engine import train_one_epoch, validate_one_epoch
 from transforms import transform_selector
-from utils import model_saver
+from utils import model_saver, make_dir
 from coco_evaluation import evaluate
 
 # ============================
@@ -145,8 +144,9 @@ def main(config_dict, seed=42):
 
     # save train params here: ys save the json here!
     config_save = config_dict['out_dir'] + "/model_configs.json"
-    with open(config_save, 'w') as f:
-        json.dump(config_dict, f)
+    make_dir(config_dict['out_dir'])
+    #with open(config_save, 'w') as f:
+        #json.dump(config_dict, f)
 
     # training loop implementation
     if config_dict['TRAIN']: 
@@ -254,7 +254,7 @@ if __name__ == "__main__":
 
     # saving and load config
     config_dict['out_dir'] = "outputs/dev_test"
-    config_dict['load'] = "outputs/dev_test/last_model.pth"
+    config_dict['load'] = "" #"outputs/dev_test/last_model.pth"
 
     # calling main    
     main(config_dict)

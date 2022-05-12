@@ -4,6 +4,7 @@ Details
 # ===========================
 # Import libraries/packages
 # ===========================
+from cProfile import label
 from matplotlib import pyplot as plt
 
 # ===========================
@@ -13,7 +14,7 @@ def plot_lr_loss(epochs, train_loss, val_loss, title_string, save_loc):
     
     # plotting data
     plt.plot(epochs, train_loss, label = "training_loss")
-    plt.plot(epochs, validation_loss, label = "validation_loss")
+    plt.plot(epochs, val_loss, label = "validation_loss")
     
     # labelling and formating plot
     plt.xlabel("number of epochs")
@@ -22,7 +23,26 @@ def plot_lr_loss(epochs, train_loss, val_loss, title_string, save_loc):
     plt.legend()
 
     # saving plot
-    plot_string = save_loc + "/" + title_string
-    plt.savefig
+    plot_string = save_loc + "/" + title_string + ".png"
+    print(plot_string)
+    plt.savefig(plot_string)
+
+def plot_precision_recall(results_dict, title_string, save_loc):
+
+    # looping through dict to build plot
+    for key, val in results_dict.items():
+        if key != 'recall':
+            plt.plot(results_dict['recall'], val, label = key)
+    
+    # labelling and formatting plot
+    plt.xlabel("recall")
+    plt.ylabel("precision")
+    plt.title(title_string)
+    plt.legend()
+
+    # saving plot
+    plot_string = save_loc + "/" + title_string + ".png"
+    print(plot_string)
+    plt.savefig(plot_string)    
 
 

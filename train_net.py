@@ -32,6 +32,7 @@ from engine import train_one_epoch, validate_one_epoch
 from transforms import transform_selector
 from utils import model_saver, make_dir
 from coco_evaluation import evaluate
+import configs
 
 # ============================
 # Train_net implementation
@@ -98,7 +99,7 @@ def main(config_dict, seed=42):
                         json_root = config_dict['validate_json'],
                         ) # no transforms in validation
         validate_loader = torch.utils.data.DataLoader(
-                        train_data,
+                        validate_data,
                         batch_size = config_dict['batch_size'],
                         shuffle = config_dict['loader_shuffle'],
                         num_workers = config_dict['loader_workers'],
@@ -123,9 +124,9 @@ def main(config_dict, seed=42):
 
     # get optimizer
     params = [p for p in model.parameters() if p.requires_grad]
-    config_dict['model_params'] = params
+    #config_dict['model_params'] = params
     optimizer = optimizer_selector(config_dict['optimizer'],
-                                   config_dict['model_params'],
+                                   params,
                                    config_dict['optimizer_params'])
 
     # get learning rate scheduler
@@ -145,8 +146,9 @@ def main(config_dict, seed=42):
     # save train params here: ys save the json here!
     config_save = config_dict['out_dir'] + "/model_configs.json"
     make_dir(config_dict['out_dir'])
-    #with open(config_save, 'w') as f:
-        #json.dump(config_dict, f)
+    with open(config_save, 'w') as f:
+        json.dump(config_dict, f)
+
 
     # training loop implementation
     if config_dict['TRAIN']: 
@@ -195,11 +197,13 @@ def main(config_dict, seed=42):
     # model evaluation
     if config_dict['TEST']:
         evaluate(model, test_loader, device, config_dict['out_dir'])
-    
 
-    # save evaluation
-    """
-    """
+    # producing plots    
+    if config_dict['TRAIN']:
+        print("plot and save train")
+    if config_dict['TEST']:
+        print("plot and save test")
+
 # ============================
 # Train_net execution
 # ============================
@@ -208,53 +212,8 @@ if __name__ == "__main__":
     # ========================
     # config dictionary
     # ========================
-    # initialsi conf_dict
-    config_dict = {}
 
-    # Train and Test flags
-    config_dict['TRAIN'] = False
-    config_dict['TEST'] = True
-
-    # Transform configs
-    config_dict['transforms'] = ""
-
-    # Dataset configs
-    config_dict['train_dir'] = "data/jersey_royal_dataset/train"
-    config_dict['train_json'] = "data/jersey_royal_dataset/train/train.json"
-
-    config_dict['validate_dir'] = "data/jersey_royal_dataset/val"
-    config_dict['validate_json'] = "data/jersey_royal_dataset/val/val.json"
-
-    config_dict['test_dir'] = "data/jersey_royal_dataset/test"
-    config_dict['test_json'] = "data/jersey_royal_dataset/test/test.json"
-
-    # Dataloader config
-    config_dict['batch_size'] = 2
-    config_dict['loader_shuffle'] = True
-    config_dict['loader_workers'] = 4
-
-    # Model config
-    config_dict['model'] = "Mask_RCNN_R50_FPN"
-    config_dict['num_classes'] = 2
-
-    # optimizer config
-    config_dict['optimizer'] = "SGD"
-    config_dict['model_params'] = []
-    config_dict['optimizer_params'] = {'lr': 0.005,
-                                       'momentum': 0.9,
-                                       'weight_decay': 0.0005
-                                      }
-
-    # lr_scheduler
-    config_dict['lr_scheduler'] = "" 
-
-    # training loop config
-    config_dict['num_epochs'] = 10
-    config_dict['print_freq'] = 10
-
-    # saving and load config
-    config_dict['out_dir'] = "outputs/dev_test"
-    config_dict['load'] = "" #"outputs/dev_test/last_model.pth"
+    config_dict = configs.dev_test()
 
     # calling main    
     main(config_dict)

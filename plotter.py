@@ -5,6 +5,8 @@ Details
 # Import libraries/packages
 # ===========================
 from cProfile import label
+from turtle import title
+from unittest import result
 from matplotlib import pyplot as plt
 
 # ===========================
@@ -44,5 +46,9 @@ def plot_precision_recall(results_dict, title_string, save_loc):
     plot_string = save_loc + "/" + title_string + ".png"
     print(plot_string)
     plt.savefig(plot_string)    
+
+def f1_score(result_dict, title_string, save_loc):
+
+    #processing dict
 
 

@@ -82,9 +82,5 @@ def validate_one_epoch(validation_loader, model, device):
         
     return(val_col)
 
-
-
-
-
-def evaluate():
-    print('dave')
+#def evaluate():
+#    print('dave')

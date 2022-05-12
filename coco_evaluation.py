@@ -24,9 +24,10 @@ import json
 
 # from packages
 import utils
+from dataloader import convert_to_coco_api
 
 # ===========================
-# fucntions
+# evaluate function and supporting functions
 # ===========================
 # evaluation
 @torch.inference_mode()
@@ -75,9 +76,22 @@ def evaluate(model, data_loader, device, save_path):
     # accumulate predictions from all images
     coco_evaluator.accumulate()
     coco_evaluator.custom_evaluation()
-    #coco_evaluator.summarize()
+    coco_evaluator.summarize()
+
+def _get_iou_types(model):
+    model_without_ddp = model
+    if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+        model_without_ddp = model.module
+    iou_types = ["bbox"]
+    if isinstance(model_without_ddp, torchvision.models.detection.MaskRCNN):
+        iou_types.append("segm")
+    if isinstance(model_without_ddp, torchvision.models.detection.KeypointRCNN):
+        iou_types.append("keypoints")
+    return iou_types
  
-# ======================================================================================
+# ===========================
+# coco evaluator class and supporting functions
+# ===========================
 class CocoEvaluator:
     """
     Detials
@@ -236,7 +250,6 @@ class CocoEvaluator:
             )
         return coco_results
 
-# supporting functions ===================
 def convert_to_xywh(boxes):
     xmin, ymin, xmax, ymax = boxes.unbind(1)
     return torch.stack((xmin, ymin, xmax - xmin, ymax - ymin), dim=1)
@@ -277,89 +290,78 @@ def coco_evaluate(imgs):
     return imgs.params.imgIds, np.asarray(imgs.evalImgs).reshape(-1, len(imgs.params.areaRng), len(imgs.params.imgIds))
 
 # ======================================================================================
-def _get_iou_types(model):
-    model_without_ddp = model
-    if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-        model_without_ddp = model.module
-    iou_types = ["bbox"]
-    if isinstance(model_without_ddp, torchvision.models.detection.MaskRCNN):
-        iou_types.append("segm")
-    if isinstance(model_without_ddp, torchvision.models.detection.KeypointRCNN):
-        iou_types.append("keypoints")
-    return iou_types
-
-# Move this to data loader?
-def convert_to_coco_api(ds):
-    """
-    details
-    """
-    # initialise coco requirments
-    coco_ds = COCO()
-    # annotation IDs need to start at 1, not 0, see torchvision issue #1530
-    ann_id = 1
-    dataset = {"images": [], "categories": [], "annotations": []}
-    categories = set()
-
-    # iterate through dataset
-    for img_idx in range(len(ds)):
-        # find better way to get target
-        # targets = ds.get_annotations(img_idx)
-        # get image and target in image idx
-        img, targets = ds[img_idx]
-
-        # getting image id from target
-        image_id = targets["image_id"].item()
-        
-        # initialise and assemble image dict
-        img_dict = {}
-        img_dict["id"] = image_id
-        img_dict["height"] = img.shape[-2]
-        img_dict["width"] = img.shape[-1]
-        
-        # ad image dict to dataset dict
-        dataset["images"].append(img_dict)
-        
-        # collect bounding box data
-        bboxes = targets["boxes"].clone()
-        bboxes[:, 2:] -= bboxes[:, :2]
-        bboxes = bboxes.tolist()
-        
-        # collecting label, area, and iscrowd data
-        labels = targets["labels"].tolist()
-        areas = targets["area"].tolist()
-        iscrowd = targets["iscrowd"].tolist()
-
-        # collecting masks
-        masks = targets["masks"]
-        # make masks Fortran contiguous for coco_mask
-        masks = masks.permute(0, 2, 1).contiguous().permute(0, 2, 1)
-
-        # constucting anns
-        num_objs = len(bboxes)
-        for i in range(num_objs):
-            # collecting annotation content in loop
-            ann = {}
-            ann["image_id"] = image_id
-            ann["bbox"] = bboxes[i]
-            ann["category_id"] = labels[i]
-            categories.add(labels[i])
-            ann["area"] = areas[i]
-            ann["iscrowd"] = iscrowd[i]
-            ann["id"] = ann_id
-            if "masks" in targets:
-                ann["segmentation"] = coco_mask.encode(masks[i].numpy())
-            
-            # appending annotations to dataset
-            dataset["annotations"].append(ann)
-            ann_id += 1
-    
-    # complete assembling coco dataset dict
-    dataset["categories"] = [{"id": i} for i in sorted(categories)]
-
-    # formating dataset dict with 
-    coco_ds.dataset = dataset
-    coco_ds.createIndex()
-    return coco_ds
+## Move this to data loader? ! Test and remove, this is int datalaoder now
+#def convert_to_coco_api(ds):
+#    """
+#    details
+#    """
+#    # initialise coco requirments
+#    coco_ds = COCO()
+#    # annotation IDs need to start at 1, not 0, see torchvision issue #1530
+#    ann_id = 1
+#    dataset = {"images": [], "categories": [], "annotations": []}
+#    categories = set()
+#
+#    # iterate through dataset
+#    for img_idx in range(len(ds)):
+#        # find better way to get target
+#        # targets = ds.get_annotations(img_idx)
+#        # get image and target in image idx
+#        img, targets = ds[img_idx]
+#
+#        # getting image id from target
+#        image_id = targets["image_id"].item()
+#        
+#        # initialise and assemble image dict
+#        img_dict = {}
+#        img_dict["id"] = image_id
+#        img_dict["height"] = img.shape[-2]
+#        img_dict["width"] = img.shape[-1]
+#        
+#        # ad image dict to dataset dict
+#        dataset["images"].append(img_dict)
+#        
+#        # collect bounding box data
+#        bboxes = targets["boxes"].clone()
+#        bboxes[:, 2:] -= bboxes[:, :2]
+#        bboxes = bboxes.tolist()
+#        
+#        # collecting label, area, and iscrowd data
+#        labels = targets["labels"].tolist()
+#        areas = targets["area"].tolist()
+#        iscrowd = targets["iscrowd"].tolist()
+#
+#        # collecting masks
+#        masks = targets["masks"]
+#        # make masks Fortran contiguous for coco_mask
+#        masks = masks.permute(0, 2, 1).contiguous().permute(0, 2, 1)
+#
+#        # constucting anns
+#        num_objs = len(bboxes)
+#        for i in range(num_objs):
+#            # collecting annotation content in loop
+#            ann = {}
+#            ann["image_id"] = image_id
+#            ann["bbox"] = bboxes[i]
+#            ann["category_id"] = labels[i]
+#            categories.add(labels[i])
+#            ann["area"] = areas[i]
+#            ann["iscrowd"] = iscrowd[i]
+#            ann["id"] = ann_id
+#            if "masks" in targets:
+#                ann["segmentation"] = coco_mask.encode(masks[i].numpy())
+#            
+#            # appending annotations to dataset
+#            dataset["annotations"].append(ann)
+#            ann_id += 1
+#    
+#    # complete assembling coco dataset dict
+#    dataset["categories"] = [{"id": i} for i in sorted(categories)]
+#
+#    # formating dataset dict with 
+#    coco_ds.dataset = dataset
+#    coco_ds.createIndex()
+#    return coco_ds
 
 # further evaluation ========================================================================
 

@@ -17,7 +17,7 @@ from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.models.detection import MaskRCNN
 
 # ============================
-# Model functions
+# Model selector function
 # ============================
 # model selector
 def model_selector(model_title, num_classes):
@@ -32,6 +32,9 @@ def model_selector(model_title, num_classes):
     
     return(model)
     
+# ============================
+# Model call functions
+# ============================
 # Mask R-CNN, currently with resnet50 backbone
 def MaskRCNN_R50_FPN(num_classes):
     # load an instance segmentation model pre-trained on COCO

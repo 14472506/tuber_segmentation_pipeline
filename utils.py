@@ -40,8 +40,11 @@ def model_saver(epoch, model, optimizer, best_result, val_loss, path):
     torch.save(checkpoint, last_model_path)
 
     if val_loss < best_result:
-        best_model_path = path + "best_model.pth"
+        best_result = val_loss
+        best_model_path = path + "/best_model.pth"
         torch.save(checkpoint, best_model_path)
+    
+    return(best_result)
 
 def make_dir(path):
     try:

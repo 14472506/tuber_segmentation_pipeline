@@ -13,7 +13,10 @@ Edited by:  Bradley Hurst
 # ============================
 # pytorch imports
 from distutils.command.config import config
+import json
 from logging import root
+
+from sklearn.metrics import jaccard_score
 from engine import train_one_epoch
 from optimizer import optimizer_selector
 import torch 
@@ -29,7 +32,7 @@ from optimizer import optimizer_selector, lr_scheduler_selector
 from engine import train_one_epoch, validate_one_epoch, evaluate
 from transforms import transform_selector
 from utils import model_saver
-from evaluation import evaluate
+from coco_evaluation import evaluate
 
 # ============================
 # Train_net implementation
@@ -141,13 +144,23 @@ def main(config_dict, seed=42):
         start_epoch = checkpoint["epoch"]
 
     # save train params here: ys save the json here!
-    # something something save config_dict here
+    config_save = config_dict['out_dir'] + "/model_configs.json"
+    with open(config_save, 'w') as f:
+        json.dump(config_dict, f)
 
     # training loop implementation
     if config_dict['TRAIN']: 
         # data trackers
         iter_count = 0
         best_val = 100  # arbitrary high initial value  
+
+        # data collector
+        losses_dict = {
+            'train_loss': [],
+            'validation_loss': [],
+            'epoch': [],
+            'best_val': []
+        }
 
         # loop through epochs
         for epoch in range(start_epoch, config_dict['num_epochs']):
@@ -169,8 +182,15 @@ def main(config_dict, seed=42):
             #print("Training summary: %s, Validation summary: %s" % (train_summary, validation_summary))
             
             # save train data
+            prev_best = best_val
             best_val = model_saver(epoch, model, optimizer, best_val, validation_summary,
                                     config_dict['out_dir'])
+            
+            losses_dict['train_loss'].append(train_summary)
+            losses_dict['validation_loss'].append(validation_summary)
+            losses_dict['epoch'].append(epoch)
+            if best_val < prev_best:
+                losses_dict['best_val'].append[epoch, best_val]
     
     # model evaluation
     if config_dict['TEST']:

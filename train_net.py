@@ -19,21 +19,23 @@ from logging import root
 from engine import train_one_epoch
 from optimizer import optimizer_selector
 import torch 
+import torchvision.transforms as T
 
 # suporting library imports
 import numpy as np
 import random
+import time
 
 # package imports
 from dataloader import COCOLoader, collate_function
 from models import model_selector
 from optimizer import optimizer_selector, lr_scheduler_selector
-from engine import train_one_epoch, validate_one_epoch
+from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance
 from transforms import transform_selector
-from utils import model_saver, make_dir
+from utils import model_saver, make_dir, time_converter
 from coco_evaluation import evaluate
 import configs
-
+from plotter import plot_lr_loss, plot_precision_recall
 # ============================
 # Train_net implementation
 # ============================
@@ -167,6 +169,8 @@ def main(config_dict, seed=42):
         # loop through epochs
         for epoch in range(start_epoch, config_dict['num_epochs']):
 
+            epoch_begin = time.time()
+            
             # train one epoch
             acc_train_loss, iter_count = train_one_epoch(train_loader, model, device, optimizer, 
                                                         config_dict['print_freq'], iter_count)
@@ -192,17 +196,49 @@ def main(config_dict, seed=42):
             losses_dict['validation_loss'].append(validation_summary)
             losses_dict['epoch'].append(epoch)
             if best_val < prev_best:
-                losses_dict['best_val'].append[epoch, best_val]
-    
+                losses_dict['best_val'].append([epoch, best_val])
+
+            delta = time.time() - epoch_begin
+            epoch_duration = time_converter(delta) 
+            print("Epoch Duration: ", epoch_duration)
+            
+        # recording losses    
+        loss_path = config_dict['out_dir'] + "/loss_results.json"
+        with open(loss_path, "w") as f:
+            json.dump(losses_dict, f)
+
+        
     # model evaluation
-    if config_dict['TEST']:
-        evaluate(model, test_loader, device, config_dict['out_dir'])
+    #if config_dict['TEST']:
+    #    evaluate(model, test_loader, device, config_dict['out_dir'])
 
     # producing plots    
     if config_dict['TRAIN']:
         print("plot and save train")
     if config_dict['TEST']:
-        print("plot and save test")
+        #print("plot and save test")
+        
+        # defining model locations 
+        #losses_json = config_dict['out_dir'] + "/loss_results.json"
+        #pr_json = config_dict['out_dir'] + "/precision_recall_results.json"
+        
+        # getting data from json
+        #with open(losses_json) as losses_file:
+        #    loss_dict = json.load(losses_file)
+        #    losses_file.close() 
+        #with open(pr_json) as pr_file:
+        #    pr_dict = json.load(pr_file)
+        #    pr_file.close()
+        
+        # plotting data
+        #plot_lr_loss(loss_dict['epoch'], loss_dict['train_loss'], loss_dict['validation_loss'], 
+        #             config_dict['plot_title'], config_dict['out_dir'])
+        #plot_precision_recall(pr_dict['bbox'], config_dict['plot_title'], config_dict['out_dir'])
+        
+        #fps = fps_evaluate(model, config_dict['im_test_path'], device)
+        #print(fps)
+        
+        segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, config_dict['plot_title'], config_dict['out_dir'])
 
 # ============================
 # Train_net execution
@@ -213,7 +249,9 @@ if __name__ == "__main__":
     # config dictionary
     # ========================
 
-    config_dict = configs.dev_test()
+    conf_list = [configs.Mask_RCNN_R50_FPN_Base(), configs.Mask_RCNN_Mobilenet2_Base()]
+    
+    for conf in conf_list:
 
-    # calling main    
-    main(config_dict)
+        # calling main    
+        main(conf)

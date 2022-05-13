@@ -1,10 +1,13 @@
-x = [1, 2, 3]
-y = [2, 4, 6]
-ep = [1, 2, 3]
-title = "test"
-location = "outputs"
+from time import time
+from utils import time_converter
+import plotter as plt
 
-from re import T
-from plotter import plot_lr_loss
+seconds = 98.681
+sec = time_converter(seconds) 
+print(sec)
 
-plot_lr_loss(ep,x,y,title,location)
+x = [1,2,3]
+y = [2,4,6]
+e = [1,2,3]
+
+plt.plot_lr_loss(e,x,y,"dave","outputs")

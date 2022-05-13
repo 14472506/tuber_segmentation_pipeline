@@ -79,3 +79,12 @@ def is_dist_avail_and_initialized():
     if not dist.is_initialized():
         return False
     return True
+
+def time_converter(seconds):
+    
+    hours = seconds // 3600
+    seconds %= 3600
+    min = seconds // 60
+    seconds %= 60
+    
+    return("%02d:%02d:%02d" %(hours, min, seconds))

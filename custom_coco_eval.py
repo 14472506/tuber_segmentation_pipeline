@@ -430,42 +430,39 @@ class COCOeval:
         A           = len(p.areaRng)
         M           = len(p.maxDets)
         """
-        #pres = self.eval['precision']
-        # reducing down to threshold 0.5
-        #pres = pres[7]
-        #pres = pres[:, :, 0, 2]
- 
-        # setting up parameters
-        pres = self.eval['precision']
-        
-        pr_dict = {
-            "recall": list(range(101)),
-            "precision_50": pres[0, :, :, 0, 2].flatten().tolist(),
-            "precision_55": pres[1, :, :, 0, 2].flatten().tolist(),
-            "precision_60": pres[2, :, :, 0, 2].flatten().tolist(),
-            "precision_65": pres[3, :, :, 0, 2].flatten().tolist(),
-            "precision_70": pres[4, :, :, 0, 2].flatten().tolist(),
-            "precision_75": pres[5, :, :, 0, 2].flatten().tolist(),
-            "precision_80": pres[6, :, :, 0, 2].flatten().tolist(),
-            "precision_85": pres[7, :, :, 0, 2].flatten().tolist(),
-            "precision_90": pres[8, :, :, 0, 2].flatten().tolist(),
-            "precision_95": pres[9, :, :, 0, 2].flatten().tolist()
-        }
-        ## loop through the range of            
-        #pres = [x for x in pres[0, :, :, 0, 2][0]]
 
-        #print(pres.flatten())
-        #
-        #
-        #    pres_list = []
-        #
-        #    for j in range(101):
-        #        pres_list.append(pres[i][0])
-        #    
-        #    dict_key = "precsion_" + str(thr)
-        #    pr_dict[dict_key] = pres_list
-        #
-        return pr_dict        
+        # for precision
+        prec = self.eval['precision']  
+        prec_dict = {
+            "recall": list(range(101)),
+            "precision_50": prec[0, :, :, 0, 2].flatten().tolist(),
+            "precision_55": prec[1, :, :, 0, 2].flatten().tolist(),
+            "precision_60": prec[2, :, :, 0, 2].flatten().tolist(),
+            "precision_65": prec[3, :, :, 0, 2].flatten().tolist(),
+            "precision_70": prec[4, :, :, 0, 2].flatten().tolist(),
+            "precision_75": prec[5, :, :, 0, 2].flatten().tolist(),
+            "precision_80": prec[6, :, :, 0, 2].flatten().tolist(),
+            "precision_85": prec[7, :, :, 0, 2].flatten().tolist(),
+            "precision_90": prec[8, :, :, 0, 2].flatten().tolist(),
+            "precision_95": prec[9, :, :, 0, 2].flatten().tolist()
+        }
+        """
+        rec = self.eval['recall']
+        rec_dict = {
+            "recall": list(range(101)),
+            "precision_50": prec[0, :, :, 0, 2].flatten().tolist(),
+            "precision_55": prec[1, :, :, 0, 2].flatten().tolist(),
+            "precision_60": prec[2, :, :, 0, 2].flatten().tolist(),
+            "precision_65": prec[3, :, :, 0, 2].flatten().tolist(),
+            "precision_70": prec[4, :, :, 0, 2].flatten().tolist(),
+            "precision_75": prec[5, :, :, 0, 2].flatten().tolist(),
+            "precision_80": prec[6, :, :, 0, 2].flatten().tolist(),
+            "precision_85": prec[7, :, :, 0, 2].flatten().tolist(),
+            "precision_90": prec[8, :, :, 0, 2].flatten().tolist(),
+            "precision_95": prec[9, :, :, 0, 2].flatten().tolist()
+        }
+        """
+        return prec_dict        
 
     def summarize(self):
         '''

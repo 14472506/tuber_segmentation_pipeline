@@ -35,7 +35,7 @@ from transforms import transform_selector
 from utils import model_saver, make_dir, time_converter
 from coco_evaluation import evaluate
 import configs
-from plotter import plot_lr_loss, plot_precision_recall
+from plotter import plot_lr_loss, plot_precision_recall, plot_f1_score
 # ============================
 # Train_net implementation
 # ============================
@@ -75,8 +75,8 @@ def main(config_dict, seed=42):
     torch.backends.cudnn.benchmark = False
     
     # configuring transforms for data loading
-    if config_dict['transforms'] != "":
-        transforms = transform_selector()
+    if config_dict['transforms'] is not "":
+        transforms = transform_selector(config_dict['transforms'])
     else:
         transforms = None
     
@@ -120,7 +120,8 @@ def main(config_dict, seed=42):
                         collate_fn = collate_function)
     
     # get reqired model and set it to device
-    model = model_selector(config_dict['model'], config_dict['num_classes'])
+    model = model_selector(config_dict['model'], config_dict['num_classes'], 
+                           config_dict['min_max'])
     model.to(device)
     #print(model)
 
@@ -150,7 +151,6 @@ def main(config_dict, seed=42):
     make_dir(config_dict['out_dir'])
     with open(config_save, 'w') as f:
         json.dump(config_dict, f)
-
 
     # training loop implementation
     if config_dict['TRAIN']: 
@@ -212,34 +212,43 @@ def main(config_dict, seed=42):
     #if config_dict['TEST']:
     #    evaluate(model, test_loader, device, config_dict['out_dir'])
 
+
     # producing plots    
     if config_dict['TRAIN']:
-        print("plot and save train")
-    if config_dict['TEST']:
-        #print("plot and save test")
-        
-        # defining model locations 
-        #losses_json = config_dict['out_dir'] + "/loss_results.json"
-        #pr_json = config_dict['out_dir'] + "/precision_recall_results.json"
+        #print("plot and save train")
+        # path for loading json
+        losses_json = config_dict['out_dir'] + "/loss_results.json"
         
         # getting data from json
-        #with open(losses_json) as losses_file:
-        #    loss_dict = json.load(losses_file)
-        #    losses_file.close() 
-        #with open(pr_json) as pr_file:
-        #    pr_dict = json.load(pr_file)
-        #    pr_file.close()
+        with open(losses_json) as losses_file:
+            loss_dict = json.load(losses_file)
+            losses_file.close()
+        
+        # producting lr loss plot
+        plot_lr_loss(loss_dict['epoch'], loss_dict['train_loss'], loss_dict['validation_loss'], 
+             config_dict['plot_title'], config_dict['out_dir'])
+
+    if config_dict['TEST']:
+        #print("plot and save test")
+        # defining model locations 
+        pr_json = config_dict['out_dir'] + "/precision_recall_results.json"
+        
+        # getting data from json
+        with open(pr_json) as pr_file:
+            pr_dict = json.load(pr_file)
+            pr_file.close()
         
         # plotting data
-        #plot_lr_loss(loss_dict['epoch'], loss_dict['train_loss'], loss_dict['validation_loss'], 
-        #             config_dict['plot_title'], config_dict['out_dir'])
-        #plot_precision_recall(pr_dict['bbox'], config_dict['plot_title'], config_dict['out_dir'])
-        
-        #fps = fps_evaluate(model, config_dict['im_test_path'], device)
-        #print(fps)
-        
-        segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, config_dict['plot_title'], config_dict['out_dir'])
+        plot_precision_recall(pr_dict['segm']['pr_dict'], config_dict['plot_title'], config_dict['out_dir'])
+        plot_f1_score(pr_dict['segm']['f1_dict'], config_dict['plot_title'], config_dict['out_dir'])
 
+        # fps_value
+        fps = fps_evaluate(model, config_dict['im_test_path'], device)
+        print(fps)
+        
+        # segmentation generation
+        segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, config_dict['plot_title'], config_dict['out_dir'])
+    
 # ============================
 # Train_net execution
 # ============================
@@ -249,9 +258,17 @@ if __name__ == "__main__":
     # config dictionary
     # ========================
 
-    conf_list = [configs.Mask_RCNN_R50_FPN_Base(), configs.Mask_RCNN_Mobilenet2_Base()]
-    
+    conf_list = [configs.Mask_RCNN_R50_FPN_Base(),
+                 configs.Mask_RCNN_R50_FPN_Base_Aug(),
+                 configs.Mask_RCNN_R50_FPN_Small(),
+                 configs.Mask_RCNN_R50_FPN_Small_Aug(),
+                 configs.Mask_RCNN_Mobilenet2_Base(),
+                 configs.Mask_RCNN_Mobilenet2_Base_Aug(),
+                 configs.Mask_RCNN_Mobilenet2_Small(),
+                 configs.Mask_RCNN_Mobilenet2_Small_Aug()
+                 ]
+    #conf_list = [configs.dev_test()]
     for conf in conf_list:
-
+        
         # calling main    
         main(conf)

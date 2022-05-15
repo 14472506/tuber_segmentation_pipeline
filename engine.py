@@ -202,7 +202,6 @@ def get_prediction(device, img_path, confidence, COCO_CLASS_NAMES, model):
     with torch.no_grad():
       pred = model([img])
 
-    print(pred[0]['scores'].detach().cpu().numpy())
     pred_score = list(pred[0]['scores'].detach().cpu().numpy())
     pred_t = [pred_score.index(x) for x in pred_score if x>confidence][-1]
     masks = (pred[0]['masks']>0.5).squeeze().detach().cpu().numpy()

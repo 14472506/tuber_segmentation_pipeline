@@ -20,15 +20,15 @@ from torchvision.models.detection import MaskRCNN
 # Model selector function
 # ============================
 # model selector
-def model_selector(model_title, num_classes):
+def model_selector(model_title, num_classes, min_max):
     """
     detials
     """
     if model_title == "Mask_RCNN_R50_FPN":
-        model = MaskRCNN_R50_FPN(num_classes)
+        model = MaskRCNN_R50_FPN(num_classes, min_max)
         
     if model_title == "Mask_RCNN_mobilenetv2":
-        model = MaskRCNN_mobilenetv2(num_classes)
+        model = MaskRCNN_mobilenetv2(num_classes, min_max)
     
     return(model)
     
@@ -36,10 +36,14 @@ def model_selector(model_title, num_classes):
 # Model call functions
 # ============================
 # Mask R-CNN, currently with resnet50 backbone
-def MaskRCNN_R50_FPN(num_classes):
+def MaskRCNN_R50_FPN(num_classes, min_max):
     # load an instance segmentation model pre-trained on COCO
 
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
+
+    # setting min, max inpyt dimensions
+    model.min_size = min_max[0]
+    model.max_size = min_max[1]
 
     # get number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
@@ -57,7 +61,7 @@ def MaskRCNN_R50_FPN(num_classes):
 
     return model
 
-def MaskRCNN_mobilenetv2(num_classes):
+def MaskRCNN_mobilenetv2(num_classes, min_max):
     # laoding pretrained backbone but returning only features
     backbone = torchvision.models.mobilenet_v2(pretrained=True).features   
 
@@ -81,6 +85,8 @@ def MaskRCNN_mobilenetv2(num_classes):
     # model
     model = MaskRCNN(backbone,
                      num_classes=2,
+                     min_size=min_max[0],
+                     max_size=min_max[1],
                      rpn_anchor_generator=anchor_generator,
                      box_roi_pool=roi_pooler,
                      mask_roi_pool=mask_roi_pooler)

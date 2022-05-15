@@ -446,23 +446,40 @@ class COCOeval:
             "precision_90": prec[8, :, :, 0, 2].flatten().tolist(),
             "precision_95": prec[9, :, :, 0, 2].flatten().tolist()
         }
-        """
+        
         rec = self.eval['recall']
-        rec_dict = {
-            "recall": list(range(101)),
-            "precision_50": prec[0, :, :, 0, 2].flatten().tolist(),
-            "precision_55": prec[1, :, :, 0, 2].flatten().tolist(),
-            "precision_60": prec[2, :, :, 0, 2].flatten().tolist(),
-            "precision_65": prec[3, :, :, 0, 2].flatten().tolist(),
-            "precision_70": prec[4, :, :, 0, 2].flatten().tolist(),
-            "precision_75": prec[5, :, :, 0, 2].flatten().tolist(),
-            "precision_80": prec[6, :, :, 0, 2].flatten().tolist(),
-            "precision_85": prec[7, :, :, 0, 2].flatten().tolist(),
-            "precision_90": prec[8, :, :, 0, 2].flatten().tolist(),
-            "precision_95": prec[9, :, :, 0, 2].flatten().tolist()
+        f1_dict = {
+            "recall": rec[:, :, 0, 2].flatten().tolist(),
+            "precision":[
+                        np.average(prec[0, :, :, 0, 2].flatten()),
+                        np.average(prec[1, :, :, 0, 2].flatten()),
+                        np.average(prec[2, :, :, 0, 2].flatten()),
+                        np.average(prec[3, :, :, 0, 2].flatten()),
+                        np.average(prec[4, :, :, 0, 2].flatten()),
+                        np.average(prec[5, :, :, 0, 2].flatten()),
+                        np.average(prec[6, :, :, 0, 2].flatten()),
+                        np.average(prec[7, :, :, 0, 2].flatten()),
+                        np.average(prec[8, :, :, 0, 2].flatten()),
+                        np.average(prec[9, :, :, 0, 2].flatten())
+                        ]
+                    }
+        #    "recall_55": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_60": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_65": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_70": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_75": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_80": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_85": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_90": rec[:, :, 0, 2].flatten().tolist(),
+        #    "recall_95": rec[:, :, 0, 2].flatten().tolist()
+        #}
+
+        out_dict = {
+            "pr_dict": prec_dict,
+            "f1_dict": f1_dict
         }
-        """
-        return prec_dict        
+        
+        return out_dict        
 
     def summarize(self):
         '''

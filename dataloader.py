@@ -116,7 +116,7 @@ class COCOLoader(data.Dataset):
 
         # applying transforms if applicable
         if self.transforms != None:
-            img, target = self.transforms(img, target)
+            img = self.transforms(img)
 
         return img, target
     
@@ -137,7 +137,7 @@ def collate_function(batch):
 
     Edited by:  Bradley Hurst
     """
-    return tuple(zip(*batch))
+    return tuple(zip(*batch)) 
 
     ## before testing, all this will need to be tested when on the web
     #images = torch.stack(images, 0)

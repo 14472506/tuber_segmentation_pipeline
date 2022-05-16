@@ -1,7 +1,8 @@
 ########## Repo specific ##########
 /data
-/outputs
+#/outputs
 
+*.pth
 ########## Python temp ##########
 
 # Byte-compiled / optimized / DLL files

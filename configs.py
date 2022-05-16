@@ -75,8 +75,8 @@ def Mask_RCNN_R50_FPN_Base():
     config_dict = {}
 
     # Train and Test flags
-    config_dict['TRAIN'] = True
-    config_dict['TEST'] = False
+    config_dict['TRAIN'] = False
+    config_dict['TEST'] = True
 
     # Transform configs
     config_dict['transforms'] = ""
@@ -117,7 +117,7 @@ def Mask_RCNN_R50_FPN_Base():
 
     # saving and load config
     config_dict['out_dir'] = "outputs/Mask_RCNN_R50_FPN_Base"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_R50_FPN_Base/best_model.pth"
+    config_dict['load'] = "outputs/Mask_RCNN_R50_FPN_Base/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_R50_FPN_lr:0.005"
@@ -130,8 +130,8 @@ def Mask_RCNN_R50_FPN_Small():
     config_dict = {}
 
     # Train and Test flags
-    config_dict['TRAIN'] = True
-    config_dict['TEST'] = False
+    config_dict['TRAIN'] = False
+    config_dict['TEST'] = True
 
     # Transform configs
     config_dict['transforms'] = ""
@@ -172,7 +172,7 @@ def Mask_RCNN_R50_FPN_Small():
 
     # saving and load config
     config_dict['out_dir'] = "outputs/Mask_RCNN_R50_FPN_Small"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_R50_FPN_Base/best_model.pth"
+    config_dict['load'] = "outputs/Mask_RCNN_R50_FPN_Small/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_R50_FPN_lr:0.005"
@@ -185,8 +185,8 @@ def Mask_RCNN_R50_FPN_Base_Aug():
     config_dict = {}
 
     # Train and Test flags
-    config_dict['TRAIN'] = True
-    config_dict['TEST'] = False
+    config_dict['TRAIN'] = False
+    config_dict['TEST'] = True
 
     # Transform configs
     config_dict['transforms'] = "simple"
@@ -227,7 +227,7 @@ def Mask_RCNN_R50_FPN_Base_Aug():
 
     # saving and load config
     config_dict['out_dir'] = "outputs/Mask_RCNN_R50_FPN_Base_Aug"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_R50_FPN_Base/best_model.pth"
+    config_dict['load'] = "outputs/Mask_RCNN_R50_FPN_Base_Aug/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_R50_FPN_lr:0.005"
@@ -240,8 +240,8 @@ def Mask_RCNN_R50_FPN_Small_Aug():
     config_dict = {}
 
     # Train and Test flags
-    config_dict['TRAIN'] = True
-    config_dict['TEST'] = False
+    config_dict['TRAIN'] = False
+    config_dict['TEST'] = True
 
     # Transform configs
     config_dict['transforms'] = "simple"
@@ -282,7 +282,7 @@ def Mask_RCNN_R50_FPN_Small_Aug():
 
     # saving and load config
     config_dict['out_dir'] = "outputs/Mask_RCNN_R50_FPN_Small_Aug"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_R50_FPN_Base/best_model.pth"
+    config_dict['load'] = "outputs/Mask_RCNN_R50_FPN_Small_Aug/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_R50_FPN_lr:0.005"
@@ -320,7 +320,7 @@ def Mask_RCNN_Mobilenet2_Base():
     # Model config
     config_dict['model'] = "Mask_RCNN_mobilenetv2"
     config_dict['num_classes'] = 2
-    config_dict['min_max'] = [640, 420]
+    config_dict['min_max'] = [1920, 1080]
 
     # optimizer config
     config_dict['optimizer'] = "SGD"
@@ -337,8 +337,8 @@ def Mask_RCNN_Mobilenet2_Base():
     config_dict['print_freq'] = 10
 
     # saving and load config
-    config_dict['out_dir'] = "outputs/Mask_RCNN_Mobilenet2_Base"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_Mobilenet2_Base/best_model.pth"
+    config_dict['out_dir'] = "outputs/Mask_RCNN_Mobilenet2_Large"
+    config_dict['load'] = ""#"outputs/Mask_RCNN_Mobilenet2_Large/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_MobilenetV2_lr:0.005"
@@ -351,8 +351,8 @@ def Mask_RCNN_Mobilenet2_Small():
     config_dict = {}
 
     # Train and Test flags
-    config_dict['TRAIN'] = True
-    config_dict['TEST'] = False
+    config_dict['TRAIN'] = False
+    config_dict['TEST'] = True
 
     # Transform configs
     config_dict['transforms'] = ""
@@ -393,7 +393,7 @@ def Mask_RCNN_Mobilenet2_Small():
 
     # saving and load config
     config_dict['out_dir'] = "outputs/Mask_RCNN_Mobilenet2_Small"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_Mobilenet2_Base/best_model.pth"
+    config_dict['load'] = "outputs/Mask_RCNN_Mobilenet2_Small/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_MobilenetV2_lr:0.005"
@@ -430,7 +430,7 @@ def Mask_RCNN_Mobilenet2_Base_Aug():
     # Model config
     config_dict['model'] = "Mask_RCNN_mobilenetv2"
     config_dict['num_classes'] = 2
-    config_dict['min_max'] = [640, 420]
+    config_dict['min_max'] = [1920, 1080]
 
     # optimizer config
     config_dict['optimizer'] = "SGD"
@@ -447,8 +447,8 @@ def Mask_RCNN_Mobilenet2_Base_Aug():
     config_dict['print_freq'] = 10
 
     # saving and load config
-    config_dict['out_dir'] = "outputs/Mask_RCNN_Mobilenet2_Base_Aug"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_Mobilenet2_Base/best_model.pth"
+    config_dict['out_dir'] = "outputs/Mask_RCNN_Mobilenet2_Large_Aug"
+    config_dict['load'] = ""#"outputs/Mask_RCNN_Mobilenet2_Large_Aug/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_MobilenetV2_lr:0.005"
@@ -461,8 +461,8 @@ def Mask_RCNN_Mobilenet2_Small_Aug():
     config_dict = {}
 
     # Train and Test flags
-    config_dict['TRAIN'] = True
-    config_dict['TEST'] = False
+    config_dict['TRAIN'] = False
+    config_dict['TEST'] = True
 
     # Transform configs
     config_dict['transforms'] = "simple"
@@ -503,7 +503,7 @@ def Mask_RCNN_Mobilenet2_Small_Aug():
 
     # saving and load config
     config_dict['out_dir'] = "outputs/Mask_RCNN_Mobilenet2_Small_Aug"
-    config_dict['load'] = ""#"outputs/Mask_RCNN_Mobilenet2_Base/best_model.pth"
+    config_dict['load'] = "outputs/Mask_RCNN_Mobilenet2_Small_Aug/best_model.pth"
 
     # plotting detials
     config_dict['plot_title'] = "Mask_RCNN_MobilenetV2_lr:0.005"

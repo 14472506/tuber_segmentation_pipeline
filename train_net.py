@@ -209,8 +209,8 @@ def main(config_dict, seed=42):
 
         
     # model evaluation
-    #if config_dict['TEST']:
-    #    evaluate(model, test_loader, device, config_dict['out_dir'])
+    if config_dict['TEST']:
+        evaluate(model, test_loader, device, config_dict['out_dir'])
 
 
     # producing plots    
@@ -258,17 +258,18 @@ if __name__ == "__main__":
     # config dictionary
     # ========================
 
-    conf_list = [configs.Mask_RCNN_R50_FPN_Base(),
-                 configs.Mask_RCNN_R50_FPN_Base_Aug(),
-                 configs.Mask_RCNN_R50_FPN_Small(),
-                 configs.Mask_RCNN_R50_FPN_Small_Aug(),
+    conf_list = [
+                 #configs.Mask_RCNN_R50_FPN_Base(),
+                 #configs.Mask_RCNN_R50_FPN_Base_Aug(),
+                 #configs.Mask_RCNN_R50_FPN_Small(),
+                 #configs.Mask_RCNN_R50_FPN_Small_Aug(),
                  configs.Mask_RCNN_Mobilenet2_Base(),
                  configs.Mask_RCNN_Mobilenet2_Base_Aug(),
-                 configs.Mask_RCNN_Mobilenet2_Small(),
-                 configs.Mask_RCNN_Mobilenet2_Small_Aug()
+                 #configs.Mask_RCNN_Mobilenet2_Small(),
+                 #configs.Mask_RCNN_Mobilenet2_Small_Aug()
                  ]
     #conf_list = [configs.dev_test()]
     for conf in conf_list:
-        
+
         # calling main    
         main(conf)

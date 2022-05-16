@@ -1,0 +1,21 @@
+Tasks:
+[] - Validate randoms seed fixing
+[] - Modify collate_fn
+[] - Validate modifications to config
+[] - Customise compose function for transforms
+[] - Further Transforms
+[] - Post Segmentation Processing
+[] - Centroid Error
+
+Notes:
+- Validate random seed modification recomended by andy
+- Collate function need to be modified, not high on priorities list
+- Validate modifications to config requires just training a model using it!
+- Transforms currently only work on images and not transforms, Unsure why this is as it used 
+  the same compose function as tutorials but this should be checked to see if IS issue and then
+  fixed if so
+- Further transforms, would be interesting, but not high on priority list? maybe
+- Post segmentation processing, This would be a further step and potentially mirrored in a 
+  New part of the pipeling focusing on  implementation
+- Centroid Error needs to be given careful consideration not so much for implementation but for
+  how this can be integrated into pipeline for evaluation

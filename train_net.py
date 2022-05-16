@@ -140,7 +140,7 @@ def main(config_dict, seed=42):
     start_epoch = 0
 
     # laoding model if required
-    if config_dict['load'] != "":
+    if config_dict['load_flag']:
         checkpoint = torch.load(config_dict["load"])
         model.load_state_dict(checkpoint["state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer"])

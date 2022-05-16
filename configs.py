@@ -5,7 +5,8 @@ def conf_maker(TRAIN,
                TEST,
                MODEL,  
                OUT_DIR,
-               TRANSFORMS="",             
+               TRANSFORMS="",
+               LOAD_FLAG=False,             
                BATCH_SIZE=2,
                WORKERS=4,             
                MIN_MAX=[800, 1333], 
@@ -59,6 +60,7 @@ def conf_maker(TRAIN,
 
     # saving and load config
     config_dict['out_dir'] = "outputs/" + OUT_DIR
+    config_dict['load_flag'] = LOAD_FLAG
     config_dict['load'] = "outputs/" + OUT_DIR + "/best_model.pth"
     
     # plotting detials

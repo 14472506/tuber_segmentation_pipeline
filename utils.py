@@ -8,6 +8,9 @@ import os
 import torch
 import errno
 import torch.distributed as dist
+import random
+import numpy as np
+
 
 # main loop ============================================================================
 def model_saver(epoch, model, optimizer, best_result, val_loss, path):
@@ -51,6 +54,28 @@ def make_dir(path):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
+
+def set_seed(seed):
+    """
+    Details
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    os.environ['PYTHONHASHSEED'] = str(seed)
+
+def seed_worker(worker_id):
+    """
+    Details
+    """
+    info = torch.utils.data.get_worker_info()
+    worker_seed =  torch.initial_seed() % 2 ** 32
+    np.random.seed(worker_seed) 
+    random.seed(worker_seed)
+    print("Worker ID:", info.id, "Worker Seed:",worker_seed)
 
 # coco eval =============================================================================
 def all_gather(data):

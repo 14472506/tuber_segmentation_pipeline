@@ -1,0 +1,71 @@
+Worker ID: 0 Worker Seed: 3421126067
+Worker ID: 2 Worker Seed: 3421126069
+Worker ID: 1 Worker Seed: 3421126068
+Worker ID: 3 Worker Seed: 3421126070
+
+
+====================================
+
+Worker ID: 0 Worker Seed: 2545613046
+Worker ID: 1 Worker Seed: 2545613047
+Worker ID: 2 Worker Seed: 2545613048
+Worker ID: 3 Worker Seed: 2545613049
+
+
+====================================
+
+Worker ID: 0 Worker Seed: 2182697146
+Worker ID: 1 Worker Seed: 2182697147
+Worker ID: 2 Worker Seed: 2182697148
+Worker ID: 3 Worker Seed: 2182697149
+
+
+===================================
+
+Worker ID: 0 Worker Seed: 785403480
+Worker ID: 1 Worker Seed: 785403481
+Worker ID: 2 Worker Seed: 785403482
+Worker ID: 3 Worker Seed: 785403483
+
+
+====================================
+
+Worker ID: 0 Worker Seed: 1468362012
+Worker ID: 1 Worker Seed: 1468362013
+Worker ID: 2 Worker Seed: 1468362014
+Worker ID: 3 Worker Seed: 1468362015
+
+
+====================================
+
+Worker ID: 0 Worker Seed: 4117595465
+Worker ID: 1 Worker Seed: 4117595466
+Worker ID: 2 Worker Seed: 4117595467
+Worker ID: 3 Worker Seed: 4117595468
+
+
+====================================
+
+Worker ID: 0 Worker Seed: 1116476131
+Worker ID: 1 Worker Seed: 1116476132
+Worker ID: 2 Worker Seed: 1116476133
+Worker ID: 3 Worker Seed: 1116476134
+
+
+====================================
+
+Worker ID: 0 Worker Seed: 2519150503
+Worker ID: 1 Worker Seed: 2519150504
+Worker ID: 2 Worker Seed: 2519150505
+Worker ID: 3 Worker Seed: 2519150506
+
+
+===================================
+
+Worker ID: 0 Worker Seed: 967797012
+Worker ID: 1 Worker Seed: 967797013
+Worker ID: 2 Worker Seed: 967797014
+Worker ID: 3 Worker Seed: 967797015
+
+
+===================================

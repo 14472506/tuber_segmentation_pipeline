@@ -12,9 +12,7 @@ Edited by:  Bradley Hurst
 # Importing packages/libraries 
 # ============================
 # pytorch imports
-from distutils.command.config import config
 import json
-from logging import root
 
 from engine import train_one_epoch
 from optimizer import optimizer_selector
@@ -32,7 +30,7 @@ from models import model_selector
 from optimizer import optimizer_selector, lr_scheduler_selector
 from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance
 from transforms import transform_selector
-from utils import model_saver, make_dir, time_converter
+from utils import model_saver, make_dir, time_converter, set_seed, seed_worker
 from coco_evaluation import evaluate
 import configs
 from plotter import plot_lr_loss, plot_precision_recall, plot_f1_score
@@ -67,12 +65,8 @@ def main(config_dict, seed=42):
     # configuring device for cpu or gpu if available
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-    # fixing the random seed
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    # fixing the random seed for reproducability
+    set_seed(seed)
     
     # configuring transforms for data loading
     if config_dict['transforms'] != "":
@@ -80,7 +74,12 @@ def main(config_dict, seed=42):
     else:
         transforms = None
     
+    # producing generator with seed for data loader repeatability
+    gen = torch.Generator()
+    gen.manual_seed(seed)
+
     # get required datasets
+    # TODO? could this be cleaner up?
     if config_dict['TRAIN']:
         # training dataset and loader
         train_data = COCOLoader(
@@ -93,6 +92,8 @@ def main(config_dict, seed=42):
                         batch_size = config_dict['batch_size'],
                         shuffle = config_dict['loader_shuffle'],
                         num_workers = config_dict['loader_workers'],
+                        worker_init_fn = seed_worker,
+                        generator = gen,
                         collate_fn = collate_function)
 
         # validate dataset and loader
@@ -105,6 +106,8 @@ def main(config_dict, seed=42):
                         batch_size = config_dict['batch_size'],
                         shuffle = config_dict['loader_shuffle'],
                         num_workers = config_dict['loader_workers'],
+                        worker_init_fn = seed_worker,
+                        generator = gen,
                         collate_fn = collate_function)
 
     if config_dict['TEST']:
@@ -117,6 +120,8 @@ def main(config_dict, seed=42):
                         batch_size = config_dict['batch_size'],
                         shuffle = config_dict['loader_shuffle'],
                         num_workers = config_dict['loader_workers'],
+                        worker_init_fn = seed_worker,
+                        generator = gen,
                         collate_fn = collate_function)
     
     # get reqired model and set it to device
@@ -268,7 +273,7 @@ if __name__ == "__main__":
                  #configs.Mask_RCNN_Mobilenet2_Small(),
                  #configs.Mask_RCNN_Mobilenet2_Small_Aug()
                  #]
-    conf_list = [configs.conf_maker(True, True, "Mask_RCNN_R50_FPN", "testing")]
+    conf_list = [configs.conf_maker(True, True, "Mask_RCNN_R50_FPN", "testing", BATCH_SIZE=1)]
     for conf in conf_list:
 
         # calling main    

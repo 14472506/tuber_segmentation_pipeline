@@ -6,6 +6,8 @@ Tasks:
 [] - Further Transforms
 [] - Post Segmentation Processing
 [] - Centroid Error
+[] - Improve Logging 
+[] - Optimise how things are working
 
 Notes:
 - Validate random seed modification recomended by andy

@@ -75,7 +75,7 @@ def main(config_dict, seed=42):
     torch.backends.cudnn.benchmark = False
     
     # configuring transforms for data loading
-    if config_dict['transforms'] is not "":
+    if config_dict['transforms'] != "":
         transforms = transform_selector(config_dict['transforms'])
     else:
         transforms = None
@@ -258,17 +258,17 @@ if __name__ == "__main__":
     # config dictionary
     # ========================
 
-    conf_list = [
+    #conf_list = [
                  #configs.Mask_RCNN_R50_FPN_Base(),
                  #configs.Mask_RCNN_R50_FPN_Base_Aug(),
                  #configs.Mask_RCNN_R50_FPN_Small(),
                  #configs.Mask_RCNN_R50_FPN_Small_Aug(),
-                 configs.Mask_RCNN_Mobilenet2_Base(),
-                 configs.Mask_RCNN_Mobilenet2_Base_Aug(),
+                 #configs.Mask_RCNN_Mobilenet2_Base(),
+                 #configs.Mask_RCNN_Mobilenet2_Base_Aug(),
                  #configs.Mask_RCNN_Mobilenet2_Small(),
                  #configs.Mask_RCNN_Mobilenet2_Small_Aug()
-                 ]
-    #conf_list = [configs.dev_test()]
+                 #]
+    conf_list = [configs.conf_maker(True, True, "Mask_RCNN_R50_FPN", "testing")]
     for conf in conf_list:
 
         # calling main    

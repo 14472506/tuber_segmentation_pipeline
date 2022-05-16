@@ -1,53 +1,51 @@
 """
 Details
 """
-#def base_dict():
-#    
-#    # init dict 
-#    dict = {}
-#    
-#    # data set locations
-#    dict['train_dir'] = "data/jersey_royal_dataset/train"
-#    dict['train_json'] = "data/jersey_royal_dataset/train/train.json"
-#    dict['validate_dir'] = "data/jersey_royal_dataset/val"
-#    dict['validate_json'] = "data/jersey_royal_dataset/val/val.json"
-#    dict['test_dir'] = "data/jersey_royal_dataset/test"
-#    dict['test_json'] = "data/jersey_royal_dataset/test/test.json"
-
-def dev_test():
+def conf_maker(TRAIN,
+               TEST,
+               MODEL,  
+               OUT_DIR,
+               TRANSFORMS="",             
+               BATCH_SIZE=2,
+               WORKERS=4,             
+               MIN_MAX=[800, 1333], 
+               LR=0.005,
+               NUM_EPOCHS=20,
+               TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
+    """
+    Detials
+    """
     # initialsi conf_dict
     config_dict = {}
 
-    # Train and Test flags
-    config_dict['TRAIN'] = True
-    config_dict['TEST'] = False
-
-    # Transform configs
-    config_dict['transforms'] = "" #"simple"
-
-    # Dataset configs
+    # data set locations
     config_dict['train_dir'] = "data/jersey_royal_dataset/train"
     config_dict['train_json'] = "data/jersey_royal_dataset/train/train.json"
-
     config_dict['validate_dir'] = "data/jersey_royal_dataset/val"
     config_dict['validate_json'] = "data/jersey_royal_dataset/val/val.json"
-
     config_dict['test_dir'] = "data/jersey_royal_dataset/test"
     config_dict['test_json'] = "data/jersey_royal_dataset/test/test.json"
 
+    # Train and Test flags
+    config_dict['TRAIN'] = TRAIN
+    config_dict['TEST'] = TEST
+
+    # Transform configs
+    config_dict['transforms'] = TRANSFORMS
+
     # Dataloader config
-    config_dict['batch_size'] = 2
+    config_dict['batch_size'] = BATCH_SIZE
     config_dict['loader_shuffle'] = True
-    config_dict['loader_workers'] = 4
+    config_dict['loader_workers'] = WORKERS
 
     # Model config
-    config_dict['model'] = "Mask_RCNN_R50_FPN"
+    config_dict['model'] = MODEL
     config_dict['num_classes'] = 2
-    config_dict['min_max'] = [400, 400]
+    config_dict['min_max'] = MIN_MAX
 
     # optimizer config
     config_dict['optimizer'] = "SGD"
-    config_dict['optimizer_params'] = {'lr': 0.005,
+    config_dict['optimizer_params'] = {'lr': LR,
                                        'momentum': 0.9,
                                        'weight_decay': 0.0005
                                       }
@@ -56,16 +54,16 @@ def dev_test():
     config_dict['lr_scheduler'] = "" 
 
     # training loop config
-    config_dict['num_epochs'] = 1
+    config_dict['num_epochs'] = NUM_EPOCHS
     config_dict['print_freq'] = 10
 
     # saving and load config
-    config_dict['out_dir'] = "outputs/dev_test"
-    config_dict['load'] = "" #"outputs/dev_test/last_model.pth"
+    config_dict['out_dir'] = "outputs/" + OUT_DIR
+    config_dict['load'] = "outputs/" + OUT_DIR + "/best_model.pth"
     
     # plotting detials
-    config_dict['plot_title'] = "Mask_RCNN_R50_FP_lr:0.005"
-    config_dict['im_test_path'] = "data/jersey_royal_dataset/test/169.JPG"
+    config_dict['plot_title'] = OUT_DIR + "_lr:" + str (LR)
+    config_dict['im_test_path'] = TEST_IM_STR
     
     return config_dict
 

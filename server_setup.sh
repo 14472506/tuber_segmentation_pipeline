@@ -6,3 +6,6 @@ yes | conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
 
 # installing pycoccotools
 yes | conda install -c conda-forge pycocotools 
+
+# intalling opencv
+pip install opencv-python

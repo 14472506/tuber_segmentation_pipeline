@@ -1,7 +1,7 @@
 Tasks:
-[] - Validate randoms seed fixing
+[-] - Validate randoms seed fixing
 [] - Modify collate_fn
-[] - Validate modifications to config
+[x] - Validate modifications to config
 [] - Customise compose function for transforms
 [] - Further Transforms
 [] - Post Segmentation Processing
@@ -10,6 +10,12 @@ Tasks:
 [] - Optimise how things are working
 
 Notes:
+17/05/2022
+- random seed fixing needs to be validated but were not seeing perfect replication but this may be due 
+  to zero workers beng used on the LAR server. keep an eye on this!
+- LR seems to be fine from plots. need to evaluate best model and last model and compare results
+
+16/05/2022
 - Validate random seed modification recomended by andy
 - Collate function need to be modified, not high on priorities list
 - Validate modifications to config requires just training a model using it!

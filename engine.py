@@ -18,7 +18,7 @@ import random
 # ===========================
 # Training
 # =========================== 
-def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_count):
+def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_count, epoch):
     """
     train details
     """
@@ -26,7 +26,16 @@ def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_cou
     model.train()
 
     # loss_collection
-    loss_col = []
+    loss_col = {
+        'total': [],
+        'classifier': [],
+        'box_reg': [],
+        'mask': [],
+        'objectness': [],
+        'rpn_box_reg': []
+    }
+    
+    idx_list = ['classifier', 'box_reg', 'mask', 'objectness', 'rpn_box_reg']
 
     # looping through dataset
     for images, targets in train_loader:
@@ -42,17 +51,22 @@ def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_cou
         loss_dict = model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
         
-        # collect losses
-        loss_col.append(losses.item())
-
+        # recording loss data
+        loss_col['total'].append(losses.item())
+        idx_count = 0
+        for i in loss_dict.values():
+            loss_col[idx_list[idx_count]].append(i.item())
+            idx_count += 1
+            
+        # carrying out backwards
         optimizer.zero_grad()
         losses.backward()
         optimizer.step()
 
         # printing results 
         if iter_count % print_freq == 0:
-            print("[iter: %s] total_loss: %s" %(iter_count, losses.item()))
-        iter_count += 1
+            print("[epoch: %s][iter: %s] total_loss: %s" %(epoch ,iter_count, losses.item()))
+        iter_count += 1    
 
     # return losses
     return loss_col, iter_count
@@ -67,8 +81,17 @@ def validate_one_epoch(validation_loader, model, device):
     # this is questionable and should be checked.
     model.train()
 
-    # validation collection
-    val_col = []
+    # loss_collection
+    loss_col = {
+        'total': [],
+        'classifier': [],
+        'box_reg': [],
+        'mask': [],
+        'objectness': [],
+        'rpn_box_reg': []
+    }
+    
+    idx_list = ['classifier', 'box_reg', 'mask', 'objectness', 'rpn_box_reg'] 
 
     # disables gradient calculation
     with torch.no_grad():
@@ -83,10 +106,14 @@ def validate_one_epoch(validation_loader, model, device):
             loss_dict = model(images, targets)
             losses = sum(loss for loss in loss_dict.values())
 
-            # append losses to val_col
-            val_col.append(losses.item())
+            # recording loss data
+            loss_col['total'].append(losses.item())
+            idx_count = 0
+            for i in loss_dict.values():
+                loss_col[idx_list[idx_count]].append(i.item())
+                idx_count += 1
         
-    return(val_col)
+    return(loss_col)
 
 # ===========================
 # Evaluation

@@ -62,12 +62,16 @@ def main(config_dict, seed=42):
 
     Edited by:  Bradley Hurst 
     """
+    # ===== fixing random seed for reporducability ============================
+    # =========================================================================
     # configuring device for cpu or gpu if available
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # fixing the random seed for reproducability
     set_seed(seed)
     
+    # ===== handling data laodinging ==========================================
+    # =========================================================================
     # configuring transforms for data loading
     if config_dict['transforms'] != "":
         transforms = transform_selector(config_dict['transforms'])
@@ -124,6 +128,8 @@ def main(config_dict, seed=42):
                         generator = gen,
                         collate_fn = collate_function)
     
+    # ====== configuring model and solver =====================================
+    # =========================================================================
     # get reqired model and set it to device
     model = model_selector(config_dict['model'], config_dict['num_classes'], 
                            config_dict['min_max'])
@@ -151,34 +157,57 @@ def main(config_dict, seed=42):
         optimizer.load_state_dict(checkpoint["optimizer"])
         start_epoch = checkpoint["epoch"]
 
+    # ====== saving config_dict ===============================================
+    # =========================================================================
     # save train params here: ys save the json here!
     config_save = config_dict['out_dir'] + "/model_configs.json"
     make_dir(config_dict['out_dir'])
     with open(config_save, 'w') as f:
         json.dump(config_dict, f)
 
+        
+    # ===== entering training loops ===========================================
+    # =========================================================================
     # training loop implementation
     if config_dict['TRAIN']: 
         # data trackers
         iter_count = 0
         best_val = 100  # arbitrary high initial value  
 
-        # data collector
-        losses_dict = {
-            'train_loss': [],
-            'validation_loss': [],
-            'epoch': [],
-            'best_val': []
+        # training loss dict
+        train_loss = {
+            'total': [],
+            'classifier': [],
+            'box_reg': [],
+            'mask': [],
+            'objectness': [],
+            'rpn_box_reg': []
         }
-
+        
+        # validation loss dict
+        val_loss = {
+            'total': [],
+            'classifier': [],
+            'box_reg': [],
+            'mask': [],
+            'objectness': [],
+            'rpn_box_reg': []
+        }
+        
+        best_model = {
+            'model_val': [],
+            'epoch': []
+        }
+        
         # loop through epochs
         for epoch in range(start_epoch, config_dict['num_epochs']):
-
+            
+            # begin epoch count
             epoch_begin = time.time()
             
             # train one epoch
             acc_train_loss, iter_count = train_one_epoch(train_loader, model, device, optimizer, 
-                                                        config_dict['print_freq'], iter_count)
+                                                        config_dict['print_freq'], iter_count, epoch)
 
             # if applicable, lr schedule step
             if config_dict['lr_scheduler'] != "":
@@ -188,36 +217,51 @@ def main(config_dict, seed=42):
             acc_val_loss = validate_one_epoch(validate_loader, model, device)
 
             # getting summariesed losses
-            train_summary = sum(acc_train_loss) / len(acc_train_loss)
-            validation_summary = sum(acc_val_loss) / len(acc_val_loss)
+            train_summary = sum(acc_train_loss['total']) / len(acc_train_loss['total'])
+            validation_summary = sum(acc_val_loss['total']) / len(acc_val_loss['total'])
             #print("Training summary: %s, Validation summary: %s" % (train_summary, validation_summary))
             
-            # save train data
+            # checking and saving model
             prev_best = best_val
             best_val = model_saver(epoch, model, optimizer, best_val, validation_summary,
                                     config_dict['out_dir'])
             
-            losses_dict['train_loss'].append(train_summary)
-            losses_dict['validation_loss'].append(validation_summary)
-            losses_dict['epoch'].append(epoch)
+            # logging and saving results from training and validation
+            train_loss['total'].append(train_summary)
+            train_loss['classifier'].append(sum(acc_train_loss['classifier']) / len(acc_train_loss['classifier']))
+            train_loss['box_reg'].append(sum(acc_train_loss['box_reg']) / len(acc_train_loss['box_reg']))
+            train_loss['mask'].append(sum(acc_train_loss['mask']) / len(acc_train_loss['mask']))
+            train_loss['objectness'].append(sum(acc_train_loss['objectness']) / len(acc_train_loss['objectness']))
+            train_loss['rpn_box_reg'].append(sum(acc_train_loss['rpn_box_reg']) / len(acc_train_loss['rpn_box_reg']))
+            
+            val_loss['total'].append(validation_summary)
+            val_loss['classifier'].append(sum(acc_val_loss['classifier']) / len(acc_val_loss['classifier']))
+            val_loss['box_reg'].append(sum(acc_val_loss['box_reg']) / len(acc_val_loss['box_reg']))
+            val_loss['mask'].append(sum(acc_val_loss['mask']) / len(acc_val_loss['mask']))
+            val_loss['objectness'].append(sum(acc_val_loss['objectness']) / len(acc_val_loss['objectness']))
+            val_loss['rpn_box_reg'].append(sum(acc_val_loss['rpn_box_reg']) / len(acc_val_loss['rpn_box_reg']))
+            
             if best_val < prev_best:
-                losses_dict['best_val'].append([epoch, best_val])
+                best_model['model_val'].append(best_val)
+                best_model['epoch'].append(epoch+1)
 
             delta = time.time() - epoch_begin
             epoch_duration = time_converter(delta) 
             print("Epoch Duration: ", epoch_duration)
             
-        # recording losses    
+        # recording losses  
+        losses_dict = {
+            'train_loss': train_loss,
+            'val_loss': val_loss,
+            'best_val': best_model
+        }
+        
         loss_path = config_dict['out_dir'] + "/loss_results.json"
         with open(loss_path, "w") as f:
             json.dump(losses_dict, f)
 
-        
-    # model evaluation
-    if config_dict['TEST']:
-        evaluate(model, test_loader, device, config_dict['out_dir'])
-
-
+    # ===== calling evaluation and plotting ===================================
+    # =========================================================================
     # producing plots    
     if config_dict['TRAIN']:
         #print("plot and save train")
@@ -230,10 +274,12 @@ def main(config_dict, seed=42):
             losses_file.close()
         
         # producting lr loss plot
-        plot_lr_loss(loss_dict['epoch'], loss_dict['train_loss'], loss_dict['validation_loss'], 
-             config_dict['plot_title'], config_dict['out_dir'])
+        plot_lr_loss(loss_dict, config_dict['plot_title'], config_dict['out_dir'])
 
     if config_dict['TEST']:
+        # model evaluation
+        evaluate(model, test_loader, device, config_dict['out_dir'])
+        
         #print("plot and save test")
         # defining model locations 
         pr_json = config_dict['out_dir'] + "/precision_recall_results.json"
@@ -252,29 +298,32 @@ def main(config_dict, seed=42):
         print(fps)
         
         # segmentation generation
-        segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, config_dict['plot_title'], config_dict['out_dir'])
+        segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, 
+                         config_dict['plot_title'], config_dict['out_dir'])
     
-# ============================
+# =================================================================================================
 # Train_net execution
-# ============================
+# =================================================================================================
 if __name__ == "__main__":
     
-    # ========================
-    # config dictionary
-    # ========================
-
-    #conf_list = [
-                 #configs.Mask_RCNN_R50_FPN_Base(),
-                 #configs.Mask_RCNN_R50_FPN_Base_Aug(),
-                 #configs.Mask_RCNN_R50_FPN_Small(),
-                 #configs.Mask_RCNN_R50_FPN_Small_Aug(),
-                 #configs.Mask_RCNN_Mobilenet2_Base(),
-                 #configs.Mask_RCNN_Mobilenet2_Base_Aug(),
-                 #configs.Mask_RCNN_Mobilenet2_Small(),
-                 #configs.Mask_RCNN_Mobilenet2_Small_Aug()
-                 #]
-    conf_list = [configs.conf_maker(True, True, "Mask_RCNN_R50_FPN", "testing", BATCH_SIZE=1)]
-    for conf in conf_list:
-
-        # calling main    
-        main(conf)
+    # conf dict list for experimental setup
+    # Default setting as seen below:
+    # ==============================
+    # conf_maker(TRAIN, TEST, MODEL, OUT_DIR, TRANSFORMS="", LOAD_FLAG=False, BATCH_SIZE=2, WORKERS=4,             
+    #           MIN_MAX=[800, 1333], LR=0.005, NUM_EPOCHS=20, TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
+    
+    idx = 1
+    lr_list = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
+    
+    for i in lr_list:
+        
+        # setting up list of models
+        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "train_val_test_"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=0, LR=i, NUM_EPOCHS=20)]
+        
+        # loop to train models through experiment
+        for conf in conf_list:
+            # calling main    
+            main(conf)
+        
+        idx += 1

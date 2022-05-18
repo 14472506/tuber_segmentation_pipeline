@@ -23,6 +23,8 @@ from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
 from PIL import Image
 
+#import transforms as T
+
 # ============================
 # Classes and functions for data loading
 # ============================
@@ -116,7 +118,7 @@ class COCOLoader(data.Dataset):
 
         # applying transforms if applicable
         if self.transforms != None:
-            img = self.transforms(img)
+            img, transform = self.transforms(img, transform)
 
         return img, target
     

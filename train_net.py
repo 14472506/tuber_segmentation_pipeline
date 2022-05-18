@@ -319,8 +319,8 @@ if __name__ == "__main__":
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "Three_Epoch"+str(idx), BATCH_SIZE=1,
-                                        WORKERS=0, LR=i, NUM_EPOCHS=3, LOAD_FLAG=False, LOAD_BEST=False)]
+        conf_list = [configs.conf_maker(False, True, "Mask_RCNN_R50_FPN", "One_Epoch"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=0, LR=i, NUM_EPOCHS=5, LOAD_FLAG=True, LOAD_BEST=False)]
         
         # loop to train models through experiment
         for conf in conf_list:

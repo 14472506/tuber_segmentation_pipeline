@@ -17,12 +17,17 @@ Notes:
     - get segmentation results from best model and last model
     - look into custom compose function for transforms to tensor masks
     - start applying further transforms
+    - PCA of Centroid location:
+       - https://pub.towardsai.net/principal-component-analysis-pca-with-python-examples-tutorial-67a917bae9aa
+  
 
 17/05/2022
 - random seed fixing needs to be validated but were not seeing perfect replication but this may be due 
   to zero workers beng used on the LAR server. keep an eye on this!
 - LR seems to be fine from plots. need to evaluate best model and last model and compare results
-- Example of understanding LR: https://towardsdatascience.com/https-medium-com-dashingaditya-rakhecha-understanding-learning-rate-dd5da26bb6de
+- Example of understanding LR: 
+    - https://towardsdatascience.com/https-medium-com-dashingaditya-rakhecha-understanding-learning-rate-dd5da26bb6de
+    - https://pub.towardsai.net/principal-component-analysis-pca-with-python-examples-tutorial-67a917bae9aa
 
 16/05/2022
 - Validate random seed modification recomended by andy

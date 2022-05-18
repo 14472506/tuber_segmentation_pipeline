@@ -290,8 +290,8 @@ def main(config_dict, seed=42):
             pr_file.close()
         
         # plotting data
-        plot_precision_recall(pr_dict['segm']['pr_dict'], config_dict['plot_title'], config_dict['out_dir'])
-        plot_f1_score(pr_dict['segm']['f1_dict'], config_dict['plot_title'], config_dict['out_dir'])
+        plot_precision_recall(pr_dict['segm'], config_dict['plot_title'], config_dict['out_dir'])
+        #plot_f1_score(pr_dict['segm'], config_dict['plot_title'], config_dict['out_dir'])
 
         # fps_value
         fps = fps_evaluate(model, config_dict['im_test_path'], device)
@@ -309,17 +309,18 @@ if __name__ == "__main__":
     # conf dict list for experimental setup
     # Default setting as seen below:
     # ==============================
-    # conf_maker(TRAIN, TEST, MODEL, OUT_DIR, TRANSFORMS="", LOAD_FLAG=False, BATCH_SIZE=2, WORKERS=4,             
-    #           MIN_MAX=[800, 1333], LR=0.005, NUM_EPOCHS=20, TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
+    # conf_maker(TRAIN, TEST, MODEL, OUT_DIR, TRANSFORMS="", LOAD_FLAG=False, LOAD_BEST=True, BATCH_SIZE=2,
+    #            WORKERS=4 , MIN_MAX=[800, 1333], LR=0.005, NUM_EPOCHS=20,
+    #            TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
     
-    idx = 1
-    lr_list = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
+    idx = 0
+    lr_list = [0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005]
     
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "train_val_test_"+str(idx), BATCH_SIZE=1,
-                                        WORKERS=0, LR=i, NUM_EPOCHS=20)]
+        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "Three_Epoch"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=0, LR=i, NUM_EPOCHS=3, LOAD_FLAG=False, LOAD_BEST=False)]
         
         # loop to train models through experiment
         for conf in conf_list:

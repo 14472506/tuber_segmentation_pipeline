@@ -10,10 +10,19 @@ Tasks:
 [] - Optimise how things are working
 
 Notes:
+18/05/2022
+- Tasks for today:
+    - review learning rate results and plots,
+    - plot models between best and worse results
+    - get segmentation results from best model and last model
+    - look into custom compose function for transforms to tensor masks
+    - start applying further transforms
+
 17/05/2022
 - random seed fixing needs to be validated but were not seeing perfect replication but this may be due 
   to zero workers beng used on the LAR server. keep an eye on this!
 - LR seems to be fine from plots. need to evaluate best model and last model and compare results
+- Example of understanding LR: https://towardsdatascience.com/https-medium-com-dashingaditya-rakhecha-understanding-learning-rate-dd5da26bb6de
 
 16/05/2022
 - Validate random seed modification recomended by andy

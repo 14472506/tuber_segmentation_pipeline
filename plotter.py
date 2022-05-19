@@ -21,19 +21,19 @@ def plot_lr_loss(loss_dict, title_string, save_loc):
     plt.figure()
     # plotting trainin data
     plt.plot(epochs, loss_dict['train_loss']['total'], label = "training_total", color = '#0000FF')
-    plt.plot(epochs, loss_dict['train_loss']['classifier'], label = "training_classifier", color = '#088F8F')
-    plt.plot(epochs, loss_dict['train_loss']['box_reg'], label = "training_box_reg", color = '#7393B3')
-    plt.plot(epochs, loss_dict['train_loss']['mask'], label = "training_mask", color = '#5F9EA0')
-    plt.plot(epochs, loss_dict['train_loss']['objectness'], label = "training_objectness", color = '#0096FF')
-    plt.plot(epochs, loss_dict['train_loss']['rpn_box_reg'], label = "training_rpn_box_reg", color = '#00FFFF')
+    #plt.plot(epochs, loss_dict['train_loss']['classifier'], label = "training_classifier", color = '#088F8F')
+    #plt.plot(epochs, loss_dict['train_loss']['box_reg'], label = "training_box_reg", color = '#7393B3')
+    #plt.plot(epochs, loss_dict['train_loss']['mask'], label = "training_mask", color = '#5F9EA0')
+    #plt.plot(epochs, loss_dict['train_loss']['objectness'], label = "training_objectness", color = '#0096FF')
+    #plt.plot(epochs, loss_dict['train_loss']['rpn_box_reg'], label = "training_rpn_box_reg", color = '#00FFFF')
     
     # plotting val dataa
     plt.plot(epochs, loss_dict['val_loss']['total'], label = "val_total", color = '#EE4B2B')
-    plt.plot(epochs, loss_dict['val_loss']['classifier'], label = "val_classifier", color = '#880808')
-    plt.plot(epochs, loss_dict['val_loss']['box_reg'], label = "val_box_reg", color = '#AA4A44')
-    plt.plot(epochs, loss_dict['val_loss']['mask'], label = "val_mask", color = '#800020')
-    plt.plot(epochs, loss_dict['val_loss']['objectness'], label = "val_objectness", color = '#CC5500')
-    plt.plot(epochs, loss_dict['val_loss']['rpn_box_reg'], label = "val_rpn_box_reg", color = '#E97451')
+    #plt.plot(epochs, loss_dict['val_loss']['classifier'], label = "val_classifier", color = '#880808')
+    #plt.plot(epochs, loss_dict['val_loss']['box_reg'], label = "val_box_reg", color = '#AA4A44')
+    #plt.plot(epochs, loss_dict['val_loss']['mask'], label = "val_mask", color = '#800020')
+    #plt.plot(epochs, loss_dict['val_loss']['objectness'], label = "val_objectness", color = '#CC5500')
+    #plt.plot(epochs, loss_dict['val_loss']['rpn_box_reg'], label = "val_rpn_box_reg", color = '#E97451')
     
     # labelling and formating plot
     plt.xlabel("number of epochs")

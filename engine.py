@@ -23,7 +23,7 @@ def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_cou
     train details
     """
     # set/ensure model output is configured for trainingtrain_loader, model, device, optimizer,
-    model.train()
+    model.train(False)
 
     # loss_collection
     loss_col = {

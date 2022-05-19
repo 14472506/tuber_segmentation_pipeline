@@ -15,6 +15,17 @@ from PIL import Image
 import cv2
 import torchvision.transforms as T
 import random
+
+########
+# for eval_forward
+########
+from collections import OrderedDict
+from typing import Union
+from torch import nn
+import warnings
+from torch.jit.annotations import Tuple, List, Dict, Optional
+from torch import Tensor
+
 # ===========================
 # Training
 # =========================== 
@@ -79,7 +90,7 @@ def validate_one_epoch(validation_loader, model, device):
     validation details
     """
     # this is questionable and should be checked.
-    model.train()
+    #model.train()
 
     # loss_collection
     loss_col = {
@@ -106,6 +117,7 @@ def validate_one_epoch(validation_loader, model, device):
             #    print(module)
             #if isinstance(module, torch.nn.BatchNorm2d):
             #    module.eval()
+
         
         for name, module in module.name_modules():
           if hasattr(module, 'training'):
@@ -114,15 +126,13 @@ def validate_one_epoch(validation_loader, model, device):
         
         for images, targets in validation_loader:
 
-
-
             # currently loading images and targets to device. REPLACE this with colate function and
             # and more effient method of sending images and target to device
             images = list(image.to(device) for image in images)
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
             # getting losses
-            loss_dict = model(images, targets)
+            loss_dict = eval_forward(model, images, targets)
             losses = sum(loss for loss in loss_dict.values())
 
             # recording loss data
@@ -257,3 +267,70 @@ def get_prediction(device, img_path, confidence, COCO_CLASS_NAMES, model):
     pred_boxes = pred_boxes[:pred_t+1]
     pred_class = pred_class[:pred_t+1]
     return masks, pred_boxes, pred_class
+
+def eval_forward(model, images, targets):
+    # type: (List[Tensor], Optional[List[Dict[str, Tensor]]]) -> Tuple[Dict[str, Tensor], List[Dict[str, Tensor]]]
+    """
+    Arguments:
+        images (list[Tensor]): images to be processed
+        targets (list[Dict[Tensor]]): ground-truth boxes present in the image (optional)
+    Returns:
+        result (list[BoxList] or dict[Tensor]): the output from the model.
+            During training, it returns a dict[Tensor] which contains the losses.
+            During testing, it returns list[BoxList] contains additional fields
+            like `scores`, `labels` and `mask` (for Mask R-CNN models).
+    """
+    model.eval()
+
+    assert targets is not None
+    for target in targets:
+        boxes = target["boxes"]
+        if isinstance(boxes, torch.Tensor):
+            if len(boxes.shape) != 2 or boxes.shape[-1] != 4:
+                raise ValueError("Expected target boxes to be a tensor"
+                                 "of shape [N, 4], got {:}.".format(
+                                     boxes.shape))
+        else:
+            raise ValueError("Expected target boxes to be of type "
+                             "Tensor, got {:}.".format(type(boxes)))
+
+    original_image_sizes = torch.jit.annotate(List[Tuple[int, int]], [])
+    for img in images:
+        val = img.shape[-2:]
+        assert len(val) == 2
+        original_image_sizes.append((val[0], val[1]))
+
+    # NO TRANSFORMS FOR NOW
+    images, targets = model.transform(images, targets)
+
+    # Check for degenerate boxes
+    # TODO: Move this to a function
+    for target_idx, target in enumerate(targets):
+        boxes = target["boxes"]
+        degenerate_boxes = boxes[:, 2:] <= boxes[:, :2]
+        if degenerate_boxes.any():
+            # print the first degenerate box
+            bb_idx = torch.where(degenerate_boxes.any(dim=1))[0][0]
+            degen_bb: List[float] = boxes[bb_idx].tolist()
+            raise ValueError("All bounding boxes should have positive height and width."
+                             " Found invalid box {} for target at index {}."
+                             .format(degen_bb, target_idx))
+
+    features = model.backbone(images.tensors)
+    if isinstance(features, torch.Tensor):
+        features = OrderedDict([('0', features)])
+    proposals, proposal_losses = model.rpn(images, features, targets)
+    detections, detector_losses = model.roi_heads(features, proposals, images.image_sizes, targets)
+    detections = model.transform.postprocess(detections, images.image_sizes, original_image_sizes)
+
+    losses = {}
+    losses.update(detector_losses)
+    losses.update(proposal_losses)
+
+    if torch.jit.is_scripting():
+        if not model._has_warned:
+            warnings.warn("RCNN always returns a (Losses, Detections) tuple in scripting")
+            model._has_warned = True
+        return (losses, detections)
+    else:
+        return model.eager_outputs(losses, detections)

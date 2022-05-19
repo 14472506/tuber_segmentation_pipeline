@@ -95,7 +95,19 @@ def validate_one_epoch(validation_loader, model, device):
 
     # disables gradient calculation
     with torch.no_grad():
+
+        # set the batch normalization in the model to eval
+        for module in model.modules():
+            if isinstance(module, torch.nn.BatchNorm2d):
+                module.eval()
+        
+        for name, module in module.name_modules():
+          if hasattr(module, 'training'):
+            print('{} is training {}'.format(name, module.training))
+
         for images, targets in validation_loader:
+
+
 
             # currently loading images and targets to device. REPLACE this with colate function and
             # and more effient method of sending images and target to device

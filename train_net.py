@@ -314,14 +314,14 @@ if __name__ == "__main__":
     #            TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
     
     idx = 1
-    lr_list = [0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005]
+    lr_list = [0.00001]
     
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "TRANSFORM_TEST_"+str(idx), BATCH_SIZE=1,
-                                        WORKERS=1, LR=i, NUM_EPOCHS=3, LOAD_FLAG=False, LOAD_BEST=False, 
-                                        TRANSFORMS="random_flip")]
+        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "EPOCH100"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=0, LR=i, NUM_EPOCHS=100, LOAD_FLAG=False, LOAD_BEST=False, 
+                                        TRANSFORMS="")]
 
         # loop to train models through experiment
         for conf in conf_list:

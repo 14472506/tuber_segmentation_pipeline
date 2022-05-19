@@ -1,8 +1,8 @@
 Tasks:
-[-] - Validate randoms seed fixing
+[?] - Validate randoms seed fixing
 [] - Modify collate_fn
 [x] - Validate modifications to config
-[] - Customise compose function for transforms
+[x] - Customise compose function for transforms
 [] - Further Transforms
 [] - Post Segmentation Processing
 [] - Centroid Error
@@ -12,10 +12,14 @@ Tasks:
 Notes:
 18/05/2022
 - Tasks for today:
-    - review learning rate results and plots,
-    - plot models between best and worse results
-    - get segmentation results from best model and last model
-    - look into custom compose function for transforms to tensor masks
+carried out evaluation on plots and am happy that LR is being evaluated suitably. it appears there
+may just not be a good amount of data for the models using a larger learning rate, even though by
+other evaluation standerds these models seem to produce the best results
+
+    [x] - review learning rate results and plots,
+    [x] - plot models between best and worse results
+    [x] - get segmentation results from best model and last model
+    [x] - look into custom compose function for transforms to tensor masks
     - start applying further transforms
     - PCA of Centroid location:
        - https://pub.towardsai.net/principal-component-analysis-pca-with-python-examples-tutorial-67a917bae9aa

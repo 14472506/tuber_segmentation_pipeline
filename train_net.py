@@ -138,11 +138,12 @@ def main(config_dict, seed=42):
 
     # get optimizer
     params = [p for p in model.parameters() if p.requires_grad]
+    
     #config_dict['model_params'] = params
     optimizer = optimizer_selector(config_dict['optimizer'],
                                    params,
                                    config_dict['optimizer_params'])
-
+    
     # get learning rate scheduler
     if config_dict['lr_scheduler'] != "":
         lr_scheduler = lr_scheduler_selector(config_dict['lr_scheduler'])
@@ -156,6 +157,8 @@ def main(config_dict, seed=42):
         model.load_state_dict(checkpoint["state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         start_epoch = checkpoint["epoch"]
+        for g in optimizer.param_groups:
+            g['lr'] = config_dict['optimizer_params']['lr']
 
     # ====== saving config_dict ===============================================
     # =========================================================================
@@ -164,8 +167,7 @@ def main(config_dict, seed=42):
     make_dir(config_dict['out_dir'])
     with open(config_save, 'w') as f:
         json.dump(config_dict, f)
-
-        
+    
     # ===== entering training loops ===========================================
     # =========================================================================
     # training loop implementation
@@ -200,7 +202,7 @@ def main(config_dict, seed=42):
         }
         
         # loop through epochs
-        for epoch in range(start_epoch, config_dict['num_epochs']):
+        for epoch in range(start_epoch, start_epoch + config_dict['num_epochs']):
             
             # begin epoch count
             epoch_begin = time.time()
@@ -259,7 +261,7 @@ def main(config_dict, seed=42):
         loss_path = config_dict['out_dir'] + "/loss_results.json"
         with open(loss_path, "w") as f:
             json.dump(losses_dict, f)
-        
+            
     # ===== calling evaluation and plotting ===================================
     # =========================================================================
     # producing plots    
@@ -314,13 +316,13 @@ if __name__ == "__main__":
     #            TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
     
     idx = 1
-    lr_list = [0.005, 0.001, 0.0005, 0.0001]#[0.01, 0.005, 0.001, 0.0005, 0.0001 ,0.00005, 0.00001]
+    lr_list = [0.0005]#[0.01, 0.005, 0.001, 0.0005, 0.0001 ,0.00005, 0.00001]
     
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "does_this_work_"+str(idx), BATCH_SIZE=1,
-                                        WORKERS=0, LR=i, NUM_EPOCHS=5, LOAD_FLAG=False, LOAD_BEST=True, 
+        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "E100_EXT_"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=0, LR=i, NUM_EPOCHS=20, LOAD_FLAG=True, LOAD_BEST=True, 
                                         TRANSFORMS="")]
 
         # loop to train models through experiment

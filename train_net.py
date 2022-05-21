@@ -14,7 +14,7 @@ Edited by:  Bradley Hurst
 # pytorch imports
 import json
 
-from engine import train_one_epoch
+from engine import centroid_evaluation, train_one_epoch
 from optimizer import optimizer_selector
 import torch 
 import torchvision.transforms as T
@@ -28,7 +28,7 @@ import time
 from dataloader import COCOLoader, collate_function
 from models import model_selector
 from optimizer import optimizer_selector, lr_scheduler_selector
-from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance
+from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance, centroid_error
 from transforms import transform_selector
 from utils import model_saver, make_dir, time_converter, set_seed, seed_worker
 from coco_evaluation import evaluate
@@ -280,8 +280,10 @@ def main(config_dict, seed=42):
 
     if config_dict['TEST']:
         # model evaluation
-        evaluate(model, test_loader, device, config_dict['out_dir'])
+        #evaluate(model, test_loader, device, config_dict['out_dir'])
+        centroid_evaluation(model, test_loader, device, config_dict['out_dir'])
         
+        """
         #print("plot and save test")
         # defining model locations 
         pr_json = config_dict['out_dir'] + "/precision_recall_results.json"
@@ -302,6 +304,7 @@ def main(config_dict, seed=42):
         # segmentation generation
         segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, 
                          config_dict['plot_title'], config_dict['out_dir'])
+        """
     
 # =================================================================================================
 # Train_net execution
@@ -316,12 +319,12 @@ if __name__ == "__main__":
     #            TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
     
     idx = 1
-    lr_list = [0.0005]#[0.01, 0.005, 0.001, 0.0005, 0.0001 ,0.00005, 0.00001]
+    lr_list = [0.005]#[0.01, 0.005, 0.001, 0.0005, 0.0001 ,0.00005, 0.00001]
     
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(True, False, "Mask_RCNN_R50_FPN", "E100_EXT_"+str(idx), BATCH_SIZE=1,
+        conf_list = [configs.conf_maker(False, True, "Mask_RCNN_R50_FPN", "Arc/Mask_RCNN_R50_FPN_Base", BATCH_SIZE=1,
                                         WORKERS=0, LR=i, NUM_EPOCHS=20, LOAD_FLAG=True, LOAD_BEST=True, 
                                         TRANSFORMS="")]
 

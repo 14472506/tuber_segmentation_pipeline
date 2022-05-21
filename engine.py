@@ -4,9 +4,10 @@ Details
 # ===========================
 # Import libraties/packages
 # ===========================
+from cmath import nan
 import torch
 import numpy as np
-import math
+from math import sqrt
 import sys
 import json
 import time
@@ -26,9 +27,9 @@ import warnings
 from torch.jit.annotations import Tuple, List, Dict, Optional
 from torch import Tensor
 
-# ===========================
+# =================================================================================================
 # Training
-# =========================== 
+# =================================================================================================
 def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_count, epoch):
     """
     train details
@@ -82,9 +83,9 @@ def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_cou
     # return losses
     return loss_col, iter_count
 
-# ===========================
+# =================================================================================================
 # Validation
-# =========================== 
+# ================================================================================================= 
 def validate_one_epoch(validation_loader, model, device):
     """
     validation details
@@ -144,9 +145,143 @@ def validate_one_epoch(validation_loader, model, device):
         
     return(loss_col)
 
-# ===========================
+# =================================================================================================
+# Centroid Error Evaluation
+# =================================================================================================
+def centroid_evaluation(model, test_data_loader, device, output_dir):
+    """
+    Detials
+    """
+    # setting model to evaluate 
+    model.eval()
+
+    # intialising results dict
+    results = {}
+
+    with torch.no_grad():
+        for thresh in range(50, 95, 5):
+            # initialing thresh val and error list
+            thresh_val = thresh/100
+            centroid_errors = []
+
+            # looping through test set
+            for images, targets in test_data_loader:
+                # sending images targets to gpu
+                images = list(image.to(device) for image in images)
+                #targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+
+                # predictions for model
+                pred = model(images)
+
+                # prediction and centroid lists
+                p_cents, t_cents = centroid_lists(pred, targets, thresh_val)
+
+                # append error list to centroid errors
+                centroid_errors.append(get_errors(p_cents, t_cents)) 
+        
+            # adding results to results dictionary
+            results[thresh] = centroid_errors
+    
+        file_name = output_dir + "/centroid_error.json"
+        with open(file_name, "w") as f:
+            json.dump(results, f)
+    
+def get_errors(pred_cents, targ_cents):
+    """
+    Details
+    """
+    # defining error list
+    error_list = []
+
+    # looping through prediction list
+    for pred in pred_cents:
+        # intialising arbitrary high error
+        min_error = 1000
+
+        # loop to check each target against prediction
+        for targ in targ_cents:
+            # getting error between target and prediction
+            error = centroid_error(pred, targ)
+            
+            # checking and updating min error
+            if error < min_error:
+                min_error = error
+        
+        # appending smallest error to error list
+        if min_error != 1000:
+            error_list.append(min_error)
+    
+    # return error list
+    return(error_list)
+
+def centroid_error(pred_centroid, target_centroid):
+    """
+    Detials
+    """
+    # points for calculation
+    x1 = pred_centroid[0]
+    x2 = target_centroid[0]
+    y1 = pred_centroid[1]
+    y2 = target_centroid[1]
+    
+    # RMSE calculation
+    error = round(abs(sqrt(abs((x1 - x2)**2 + abs(y1 - y2)**2))), 3) 
+
+    # returning error
+    return(error)
+
+def centroid_lists(pred, targets, thresh):
+    """
+    Detials
+    """
+    # initialising centroid lists
+    pred_centroids = []
+    targ_centroids = []
+
+    # getting mask lists
+    pred_masks = (pred[0]['masks']>thresh).squeeze().detach().cpu().numpy()*1
+    pred_masks = pred_masks.astype(np.uint8)
+    targ_masks = targets[0]['masks'].detach().cpu().numpy()
+
+    # get centroids for predictions and targets
+    for pmask in pred_masks:
+      pred_centroids.append(get_centroid(pmask)) #
+    for tmask in targ_masks:
+      targ_centroids.append(get_centroid(tmask))
+    
+    # returning collected prediction and centroid lists
+    return pred_centroids, targ_centroids
+
+def get_centroid(mask):
+    """
+    Detials
+    """
+    # get contours of mask for calculating image moments
+    cnt, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # dealing with empty typles?
+    if len(cnt) == 0:
+        return [nan, nan]
+
+    cnt = cnt[0]
+    # calculate image moments
+    M = cv2.moments(cnt)
+    # using image moment calculate centroid x and y position
+    if M['m00'] != 0: 
+      cx = int(M['m10']/M['m00'])
+      cy = int(M['m01']/M['m00'])
+      # xy centroid point list
+      point = [cx, cy]
+    else:
+      point = [nan, nan]
+    
+    # return centroid point
+    return(point)
+
+
+# =================================================================================================
 # Evaluation
-# =========================== 
+# ================================================================================================= 
 # ===== For FPS evaluation =====
 # ==============================
 def fps_evaluate(model, image_path, device):
@@ -174,7 +309,7 @@ def fps_evaluate(model, image_path, device):
 
           model.eval()
           with torch.no_grad():
-            pred = model([img])
+              pred = model([img])
 
           delta = time.time() - start_time
           times.append(delta)
@@ -204,12 +339,12 @@ def segment_instance(device, img_path, COCO_CLASS_NAMES, model, title, save_loc,
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     for i in range(len(masks)):
-      rgb_mask = get_coloured_mask(masks[i])
-      img = cv2.addWeighted(img, 1, rgb_mask, 0.5, 0)
-      b1 = (int(boxes[i][0][0]), int(boxes[i][0][1]))
-      b2 = (int(boxes[i][1][0]), int(boxes[i][1][1]))
-      cv2.rectangle(img, b1, b2, color=(0, 255, 0), thickness=rect_th)
-      cv2.putText(img,pred_cls[i], b1, cv2.FONT_HERSHEY_SIMPLEX, text_size, (0,255,0),thickness=text_th)
+        rgb_mask = get_coloured_mask(masks[i])
+        img = cv2.addWeighted(img, 1, rgb_mask, 0.5, 0)
+        b1 = (int(boxes[i][0][0]), int(boxes[i][0][1]))
+        b2 = (int(boxes[i][1][0]), int(boxes[i][1][1]))
+        cv2.rectangle(img, b1, b2, color=(0, 255, 0), thickness=rect_th)
+        cv2.putText(img,pred_cls[i], b1, cv2.FONT_HERSHEY_SIMPLEX, text_size, (0,255,0),thickness=text_th)
     plt.figure(figsize=(20,30))
     plt.imshow(img)
     plt.xticks([])

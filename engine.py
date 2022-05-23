@@ -159,7 +159,7 @@ def centroid_evaluation(model, test_data_loader, device, output_dir):
     results = {}
 
     with torch.no_grad():
-        for thresh in range(50, 95, 5):
+        for thresh in range(50, 100, 5):
             # initialing thresh val and error list
             thresh_val = thresh/100
             centroid_errors = []
@@ -278,7 +278,114 @@ def get_centroid(mask):
     # return centroid point
     return(point)
 
+# ===== Centroid mask display =====================================================================
+# =================================================================================================
+def centroid_instance(device, img_path, test_loader, model, title, save_loc, confidence=0.5, thresh=0.5):
+    """
+    details
+    """
+    # set model to eval
+    model.eval()
+    
+    # load evaluation image
+    img = Image.open(img_path)
+    transform = T.Compose([T.ToTensor()])
+    img = transform(img)
+    img = img.to(device)
+    
+    # getting prediction from model
+    with torch.no_grad():
+        prediction = model([img])
+    
+    # getting masks from prediciton
+    #pred_score = list(pred[0]['scores'].detach().cpu().numpy())
+    #pred_t = [pred_score.index(x) for x in pred_score if x>confidence][-1]
+    pred_masks = (pred[0]['masks']>0.5).squeeze().detach().cpu().numpy()
+    pred_masks = pred_masks.astype(np.uint8)
+    
+    # getting image targets
+    for image, target in test_loader:
+        # selecting matching image target 
+        if targets[0]['image_id'].item() == 8:
+            # collect mask
+            target_mask = targets[0]['masks'].detach().cpu().numpy()
+            # break loop
+            break
 
+    # get centroids for predictions and targets
+    for pmask in pred_masks:
+      pred_centroids.append(get_centroid(pmask)) 
+    for tmask in targ_masks:
+      targ_centroids.append(get_centroid(tmask))
+    
+    # getting matches
+    match_list = get_matches(pred_centroids, targ_centroids)
+    
+    # plotting centroids
+
+def plot_cents(img, match_list)
+    """
+    Detials
+    """
+    # defining colours for colour combinations
+    #colours = [[0, 255, 0],[0, 0, 255],[255, 0, 0],[0, 255, 255],[255, 255, 0],[255, 0, 255],[80, 70, 180],[250, 80, 190],[245, 145, 50],[70, 150, 250],[50, 190, 190]]
+        
+    # loop through matches
+    for match in match_list:
+        # getting colour
+        colour = (0, 255, 0)
+        #colour = colours[random.randrange(0,10)
+             
+        # add match to image
+        img = cv2.line(img, match[0], match[1], colour, 2)
+    
+    # formatting image
+    plt.figure(figsize=(20,30))
+    plt.imshow(img)
+    plt.xticks([])
+    plt.yticks([])
+  
+    # saving 
+    plot_string = save_loc + "/" + title + "_cent_error_fig.png"
+    plt.savefig(plot_string)
+    
+    
+def get_matches(pred_cent, targ_cent):
+    """
+    Details
+    """
+    # initialising best targets list
+    best_targets = []
+    
+    # looping through prediction list
+    for pred in pred_cents:
+        # intialising arbitrary high error
+        best_targ = [-1, -1]
+        min_error = 1000
+
+        # loop to check each target against prediction
+        for targ in targ_cents:
+            # getting error between target and prediction
+            error = centroid_error(pred, targ)
+            
+            # checking and updating min error
+            if error < min_error:
+                best_targ = targ
+                min_error = error
+        
+        # appending smallest error to error list
+        if best_targ != [-1, -1]:
+            best_targets.append(min_error)
+    
+    # creating list of tuples for line drawing iteration
+    match_list = list(zip(pred, best_targets))
+    
+    # return match list
+    return(match_list)
+    
+    ##############################################
+    # COLLECT MIN PRED TARG COMBINATIONS FOR PLOTTING
+            
 # =================================================================================================
 # Evaluation
 # ================================================================================================= 

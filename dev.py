@@ -70,7 +70,7 @@ train_loader = torch.utils.data.DataLoader(
                 train_data,
                 batch_size = 1,
                 shuffle = True,
-                num_workers = 4,
+                num_workers = 0,
                 collate_fn = collate_function)
 
 break_key = False
@@ -82,51 +82,13 @@ for images, targets in train_loader:
 
     if break_key:
         break
-
-    #print("tuple output")
-    #print(images)
-
-    images = list(image.to(device) for image in images)
-    targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-
-    masks_array = targets[0]["masks"].cpu().numpy()
-    for i in masks_array:
-
-        ## making white mask 
-        #white = [255, 255, 255]
-        #r = np.zeros_like(i).astype(np.uint8)
-        #g = np.zeros_like(i).astype(np.uint8)
-        #b = np.zeros_like(i).astype(np.uint8)
-        #r[i == 1], g[i == 1], b[i == 1] = white
-        #white_mask = np.stack([r, g, b], axis=2)
-
-        # keep this for future work
-        #mask_loc = np.where(i == 1)
-        ##mask_points = np.concatenate(mask_loc[0], mask_loc[1])
-        #mask_points = np.transpose(np.vstack(mask_loc))
-
-        cnt, _ = cv2.findContours(i, 1, 2)
-        cnt = cnt[0]
-
-        M = cv2.moments(cnt)
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-
-        point = [cx, cy]
-        points.append(point)
         
-        #cv2.imshow("mask", coloured_mask)
-        #cv2.waitKey(0)
+    print(targets[0]['image_id'].item())
 
-        break
-
-    if count >= 1:
-        break_key = True
     
-    count +=1
+    #images = list(image.to(device) for image in images)
+    #targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-error = centroid_error(points)
+    
 
-print(error)
-print(points)
 

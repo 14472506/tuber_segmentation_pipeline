@@ -33,7 +33,7 @@ from transforms import transform_selector
 from utils import model_saver, make_dir, time_converter, set_seed, seed_worker
 from coco_evaluation import evaluate
 import configs
-from plotter import plot_lr_loss, plot_precision_recall, plot_f1_score
+from plotter import plot_lr_loss, plot_precision_recall, plot_f1_score, plot_cent_err
 # ============================
 # Train_net implementation
 # ============================
@@ -266,7 +266,6 @@ def main(config_dict, seed=42):
     # =========================================================================
     # producing plots    
     if config_dict['TRAIN']:
-        #print("plot and save train")
         # path for loading json
         losses_json = config_dict['out_dir'] + "/loss_results.json"
         
@@ -280,23 +279,26 @@ def main(config_dict, seed=42):
 
     if config_dict['TEST']:
         # model evaluation
-        #evaluate(model, test_loader, device, config_dict['out_dir'])
+        evaluate(model, test_loader, device, config_dict['out_dir'])
         centroid_evaluation(model, test_loader, device, config_dict['out_dir'])
         
-        """
-        #print("plot and save test")
         # defining model locations 
         pr_json = config_dict['out_dir'] + "/precision_recall_results.json"
+        cen_err_json = config_dict['out_dir'] + "/centroid_error.json"
         
         # getting data from json
         with open(pr_json) as pr_file:
             pr_dict = json.load(pr_file)
             pr_file.close()
+        with open(cen_err_json) as ce_file:
+            ce_dict = json.load(ce_file)
+            ce_file.close()
         
         # plotting data
         plot_precision_recall(pr_dict['segm'], config_dict['plot_title'], config_dict['out_dir'])
+        plot_cent_err(ce_dict, config_dict['plot_title'], config_dict['out_dir'])
         #plot_f1_score(pr_dict['segm'], config_dict['plot_title'], config_dict['out_dir'])
-
+        
         # fps_value
         fps = fps_evaluate(model, config_dict['im_test_path'], device)
         print(fps)
@@ -304,8 +306,8 @@ def main(config_dict, seed=42):
         # segmentation generation
         segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, 
                          config_dict['plot_title'], config_dict['out_dir'])
-        """
-    
+
+        
 # =================================================================================================
 # Train_net execution
 # =================================================================================================
@@ -317,16 +319,26 @@ if __name__ == "__main__":
     # conf_maker(TRAIN, TEST, MODEL, OUT_DIR, TRANSFORMS="", LOAD_FLAG=False, LOAD_BEST=True, BATCH_SIZE=2,
     #            WORKERS=4 , MIN_MAX=[800, 1333], LR=0.005, NUM_EPOCHS=20,
     #            TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
+    ###############################################################################################
+    TRAIN = True
+    TEST = False
+    LOAD = False
+    BEST = True
+    
+    EPOCHS = 200
+    BATCH_SIZE = 1
+    WORKERS = 0
+    ###############################################################################################
     
     idx = 1
-    lr_list = [0.005]#[0.01, 0.005, 0.001, 0.0005, 0.0001 ,0.00005, 0.00001]
+    lr_list = [0.0005, 0.0001 ,0.00005, 0.00001, 0.000005, 0.000001]
     
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(False, True, "Mask_RCNN_R50_FPN", "Arc/Mask_RCNN_R50_FPN_Base", BATCH_SIZE=1,
-                                        WORKERS=0, LR=i, NUM_EPOCHS=20, LOAD_FLAG=True, LOAD_BEST=True, 
-                                        TRANSFORMS="")]
+        conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "TRANSFORMS_"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
+                                        TRANSFORMS="simple")]
 
         # loop to train models through experiment
         for conf in conf_list:

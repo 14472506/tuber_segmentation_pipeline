@@ -28,7 +28,7 @@ import time
 from dataloader import COCOLoader, collate_function
 from models import model_selector
 from optimizer import optimizer_selector, lr_scheduler_selector
-from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance, centroid_error
+from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance, centroid_error, centroid_instance
 from transforms import transform_selector
 from utils import model_saver, make_dir, time_converter, set_seed, seed_worker
 from coco_evaluation import evaluate
@@ -306,7 +306,7 @@ def main(config_dict, seed=42):
         # segmentation generation
         segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, 
                          config_dict['plot_title'], config_dict['out_dir'])
-
+        centroid_instance(device, config_dict['im_test_path'], test_loader, model, config_dict['plot_title'], config_dict['out_dir'], thresh=0.5)
         
 # =================================================================================================
 # Train_net execution
@@ -320,9 +320,9 @@ if __name__ == "__main__":
     #            WORKERS=4 , MIN_MAX=[800, 1333], LR=0.005, NUM_EPOCHS=20,
     #            TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
     ###############################################################################################
-    TRAIN = True
-    TEST = False
-    LOAD = False
+    TRAIN = False
+    TEST = True
+    LOAD = True
     BEST = True
     
     EPOCHS = 200
@@ -330,8 +330,8 @@ if __name__ == "__main__":
     WORKERS = 0
     ###############################################################################################
     
-    idx = 1
-    lr_list = [0.0005, 0.0001 ,0.00005, 0.00001, 0.000005, 0.000001]
+    idx = 5
+    lr_list = [0.000005]
     
     for i in lr_list:
         

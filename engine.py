@@ -8,6 +8,7 @@ from cmath import nan
 import torch
 import numpy as np
 from math import sqrt
+import math as m
 import sys
 import json
 import time
@@ -280,7 +281,7 @@ def get_centroid(mask):
 
 # ===== Centroid mask display =====================================================================
 # =================================================================================================
-def centroid_instance(device, img_path, test_loader, model, title, save_loc, confidence=0.5, thresh=0.5):
+def centroid_instance(device, img_path, test_loader, model, title, save_loc, thresh=0.5):
     """
     details
     """
@@ -300,44 +301,56 @@ def centroid_instance(device, img_path, test_loader, model, title, save_loc, con
     # getting masks from prediciton
     #pred_score = list(pred[0]['scores'].detach().cpu().numpy())
     #pred_t = [pred_score.index(x) for x in pred_score if x>confidence][-1]
-    pred_masks = (pred[0]['masks']>0.5).squeeze().detach().cpu().numpy()
+    pred_masks = (prediction[0]['masks']>thresh).squeeze().detach().cpu().numpy()
     pred_masks = pred_masks.astype(np.uint8)
     
     # getting image targets
     for image, target in test_loader:
         # selecting matching image target 
-        if targets[0]['image_id'].item() == 8:
+        if target[0]['image_id'].item() == 8:
             # collect mask
-            target_mask = targets[0]['masks'].detach().cpu().numpy()
+            target_masks = target[0]['masks'].detach().cpu().numpy()
             # break loop
             break
-
+    
+    # initialising prediction and target centroid lists
+    pred_centroids = []
+    targ_centroids = []
     # get centroids for predictions and targets
     for pmask in pred_masks:
       pred_centroids.append(get_centroid(pmask)) 
-    for tmask in targ_masks:
+    for tmask in target_masks:
       targ_centroids.append(get_centroid(tmask))
     
     # getting matches
     match_list = get_matches(pred_centroids, targ_centroids)
     
     # plotting centroids
+    plot_cents(img_path, match_list, title, save_loc)
 
-def plot_cents(img, match_list)
+def plot_cents(img_path, match_list, title, save_loc):
     """
     Detials
     """
     # defining colours for colour combinations
     #colours = [[0, 255, 0],[0, 0, 255],[255, 0, 0],[0, 255, 255],[255, 255, 0],[255, 0, 255],[80, 70, 180],[250, 80, 190],[245, 145, 50],[70, 150, 250],[50, 190, 190]]
-        
+    
+    # convert PIL image to numpy array
+    img = cv2.imread(img_path)
+    
     # loop through matches
     for match in match_list:
         # getting colour
-        colour = (0, 255, 0)
+        colour = [0, 255, 0]
         #colour = colours[random.randrange(0,10)
-             
-        # add match to image
-        img = cv2.line(img, match[0], match[1], colour, 2)
+        
+        if m.isnan(match[0][0]) == False and m.isnan(match[0][1]) == False:
+        
+            start = (match[0][0], match[0][1])
+            end = (match[1][0], match[1][1])
+            #print(match)
+            # add match to image
+            img = cv2.arrowedLine(img, start, end, colour, 2)
     
     # formatting image
     plt.figure(figsize=(20,30))
@@ -350,7 +363,7 @@ def plot_cents(img, match_list)
     plt.savefig(plot_string)
     
     
-def get_matches(pred_cent, targ_cent):
+def get_matches(pred_cents, targ_cents):
     """
     Details
     """
@@ -375,10 +388,12 @@ def get_matches(pred_cent, targ_cent):
         
         # appending smallest error to error list
         if best_targ != [-1, -1]:
-            best_targets.append(min_error)
+            best_targets.append(best_targ)
+        else:
+            best_targets.append([nan, nan])
     
     # creating list of tuples for line drawing iteration
-    match_list = list(zip(pred, best_targets))
+    match_list = list(zip(pred_cents, best_targets))
     
     # return match list
     return(match_list)

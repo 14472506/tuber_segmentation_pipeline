@@ -255,6 +255,39 @@ def centroid_lists(pred, targets, thresh):
 
 def get_centroid(mask):
     """
+    Details
+    """
+    # initialise the x and y points list
+    x_points = []
+    y_points = []
+
+    # get rows and columns from mask
+    rows = mask.shape[0]
+    columns =  mask.shape[1]
+        
+    # get x and y list
+    for i in range(columns):
+        for j in range(rows):
+            if mask[j, i] != 0:
+                x_points.append(i)
+                y_points.append(j)
+                    
+    # order lists
+    x_points.sort()
+    y_points.sort()
+        
+    # find centre indexes 
+    x_idx = int((len(x_points)-1)/2)
+    y_idx = int((len(y_points)-1)/2)
+
+    # getting centroid
+    centroid = [x_points[x_idx], y_points[y_idx]]
+
+    # returning centroid
+    return(centroid)
+
+def get_centroid1(mask):
+    """
     Detials
     """
     # get contours of mask for calculating image moments
@@ -361,8 +394,7 @@ def plot_cents(img_path, match_list, title, save_loc):
     # saving 
     plot_string = save_loc + "/" + title + "_cent_error_fig.png"
     plt.savefig(plot_string)
-    
-    
+     
 def get_matches(pred_cents, targ_cents):
     """
     Details

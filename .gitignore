@@ -1,6 +1,6 @@
 ########## Repo specific ##########
 /data
-#/outputs
+/outputs/store
 
 *.pth
 ########## Python temp ##########

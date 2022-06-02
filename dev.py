@@ -83,7 +83,25 @@ for images, targets in train_loader:
     if break_key:
         break
         
-    print(targets[0]['image_id'].item())
+    targ_masks = targets[0]['masks'].detach().cpu().numpy()
+    
+    for mask in targ_masks:
+        points = np.where(mask == 1)
+        x_points = points[1]
+        y_points = points[0]
+        
+        x_points.sort()
+        y_points.sort()
+        
+        x_idx = int((len(x_points) - 1)/2)
+        y_idx = int((len(y_points) - 1)/2)
+        
+        centroid = [x_points[x_idx], y_points[y_idx]]
+        print(centroid)
+        
+        break
+
+    break
 
     
     #images = list(image.to(device) for image in images)

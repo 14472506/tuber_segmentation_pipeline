@@ -258,35 +258,28 @@ def get_centroid(mask):
     Details
     """
     # initialise the x and y points list
-    x_points = []
-    y_points = []
-
-    # get rows and columns from mask
-    rows = mask.shape[0]
-    columns =  mask.shape[1]
+    points = np.where(mask == 1)
+    x_points = points[1]
+    y_points = points[0]
         
-    # get x and y list
-    for i in range(columns):
-        for j in range(rows):
-            if mask[j, i] != 0:
-                x_points.append(i)
-                y_points.append(j)
-                    
-    # order lists
     x_points.sort()
     y_points.sort()
         
-    # find centre indexes 
-    x_idx = int((len(x_points)-1)/2)
-    y_idx = int((len(y_points)-1)/2)
-
-    # getting centroid
-    centroid = [x_points[x_idx], y_points[y_idx]]
-
+    x_idx = int((len(x_points) - 1)/2)
+    y_idx = int((len(y_points) - 1)/2)
+    
+    print(x_idx, y_idx)
+    if x_idx != 0 and y_idx != 0:
+        centroid = [x_points[x_idx], y_points[y_idx]]
+        print(centroid)
+    else:
+        centroid = [nan, nan]
+        print(centroid)
+    
     # returning centroid
     return(centroid)
 
-def get_centroid1(mask):
+def get_centroid_using_moments(mask):
     """
     Detials
     """

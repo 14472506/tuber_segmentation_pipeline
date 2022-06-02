@@ -174,7 +174,7 @@ def main(config_dict, seed=42):
     if config_dict['TRAIN']: 
         # data trackers
         iter_count = 0
-        best_val = 100  # arbitrary high initial value  
+        best_val = 0  # based of mAP, can be zero 
 
         # training loss dict
         train_loss = {
@@ -196,8 +196,13 @@ def main(config_dict, seed=42):
             'rpn_box_reg': []
         }
         
+        # evaluation dicitionary
+        val_eval = {
+            'mAP': []
+        }
+        
         best_model = {
-            'model_val': [],
+            'mAP_val': [],
             'epoch': []
         }
         
@@ -217,6 +222,10 @@ def main(config_dict, seed=42):
             
             # validate one epoch
             acc_val_loss = validate_one_epoch(validate_loader, model, device)
+            
+            # testing mAP
+            mAP_val = evaluate(model, validate_loader, device, config_dict['out_dir'],
+                 train_flag=config_dict['TRAIN'])
 
             # getting summariesed losses
             train_summary = sum(acc_train_loss['total']) / len(acc_train_loss['total'])
@@ -225,7 +234,7 @@ def main(config_dict, seed=42):
             
             # checking and saving model
             prev_best = best_val
-            best_val = model_saver(epoch, model, optimizer, best_val, validation_summary,
+            best_val = model_saver(epoch, model, optimizer, best_val, mAP_val,
                                     config_dict['out_dir'])
             
             # logging and saving results from training and validation
@@ -243,8 +252,10 @@ def main(config_dict, seed=42):
             val_loss['objectness'].append(sum(acc_val_loss['objectness']) / len(acc_val_loss['objectness']))
             val_loss['rpn_box_reg'].append(sum(acc_val_loss['rpn_box_reg']) / len(acc_val_loss['rpn_box_reg']))
             
-            if best_val < prev_best:
-                best_model['model_val'].append(best_val)
+            val_eval['mAP'].append(mAP_val)
+            
+            if best_val > prev_best:
+                best_model['mAP_val'].append(best_val)
                 best_model['epoch'].append(epoch+1)
 
             delta = time.time() - epoch_begin
@@ -255,6 +266,7 @@ def main(config_dict, seed=42):
         losses_dict = {
             'train_loss': train_loss,
             'val_loss': val_loss,
+            'val_eval': val_eval,
             'best_val': best_model
         }
         

@@ -33,7 +33,7 @@ from dataloader import convert_to_coco_api
 # ===========================
 # evaluation
 @torch.inference_mode()
-def evaluate(model, data_loader, device, save_path):
+def evaluate(model, data_loader, device, save_path, train_flag=False, test_flag=False):
     """
     details 
     """
@@ -77,8 +77,16 @@ def evaluate(model, data_loader, device, save_path):
 
     # accumulate predictions from all images
     coco_evaluator.accumulate()
-    coco_evaluator.custom_evaluation()
-    coco_evaluator.summarize()
+
+    # getting mAP for validation whilst training
+    if train_flag:
+        mAP_val = coco_evaluator.mAP_return()
+        return(mAP_val)
+    
+    # getting coco evaluation in test stage
+    if test_flag:
+        coco_evaluator.custom_evaluation()
+        coco_evaluator.summarize()
 
 def _get_iou_types(model):
     model_without_ddp = model
@@ -157,6 +165,12 @@ class CocoEvaluator:
         for iou_type, coco_eval in self.coco_eval.items():
             print(f"IoU metric: {iou_type}")
             coco_eval.summarize()
+
+    def mAP_return(self):
+        for iou_type, coco_eval in self.coco_eval.items():
+            if iou_type == "segm":
+                mAP_val = self.coco_eval.mAP_return()
+                return mAP_val
 
     def custom_evaluation(self):
         pr_dict = {}

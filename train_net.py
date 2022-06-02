@@ -218,6 +218,10 @@ def main(config_dict, seed=42):
             # validate one epoch
             acc_val_loss = validate_one_epoch(validate_loader, model, device)
 
+            mAP_val = evaluate(model, validate_loader, device, config_dict['out_dir'],
+                 train_flag=config_dict['TRAIN'])
+            print(mAP_val)
+
             # getting summariesed losses
             train_summary = sum(acc_train_loss['total']) / len(acc_train_loss['total'])
             validation_summary = sum(acc_val_loss['total']) / len(acc_val_loss['total'])
@@ -279,7 +283,8 @@ def main(config_dict, seed=42):
 
     if config_dict['TEST']:
         # model evaluation
-        evaluate(model, test_loader, device, config_dict['out_dir'])
+        evaluate(model, test_loader, device, config_dict['out_dir'],
+                 test_flag=config_dict['TEST'])
         centroid_evaluation(model, test_loader, device, config_dict['out_dir'])
         
         # defining model locations 

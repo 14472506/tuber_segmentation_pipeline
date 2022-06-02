@@ -25,12 +25,11 @@ import random
 import time
 
 # package imports
-from dataloader import COCOLoader, collate_function
 from models import model_selector
 from optimizer import optimizer_selector, lr_scheduler_selector
 from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance, centroid_error, centroid_instance
 from transforms import transform_selector
-from utils import model_saver, make_dir, time_converter, set_seed, seed_worker
+from utils import model_saver, make_dir, time_converter, set_seed, data_loader_manager
 from coco_evaluation import evaluate
 import configs
 from plotter import plot_lr_loss, plot_precision_recall, plot_f1_score, plot_cent_err
@@ -78,63 +77,15 @@ def main(config_dict, seed=42):
     else:
         transforms = None
     
-    # producing generator with seed for data loader repeatability
-    gen = torch.Generator()
-    gen.manual_seed(seed)
+    # collecting loaders
+    train_loader, validate_loader, test_loader = data_loader_manager(config_dict, seed, transforms)
 
-    # get required datasets
-    # TODO? could this be cleaner up?
-    if config_dict['TRAIN']:
-        # training dataset and loader
-        train_data = COCOLoader(
-                        root = config_dict['train_dir'], 
-                        json_root = config_dict['train_json'], # put back comma when augmenting 
-                        transforms = transforms
-                        )
-        train_loader = torch.utils.data.DataLoader(
-                        train_data,
-                        batch_size = config_dict['batch_size'],
-                        shuffle = config_dict['loader_shuffle'],
-                        num_workers = config_dict['loader_workers'],
-                        worker_init_fn = seed_worker,
-                        generator = gen,
-                        collate_fn = collate_function)
-
-        # validate dataset and loader
-        validate_data = COCOLoader(
-                        root = config_dict['validate_dir'], 
-                        json_root = config_dict['validate_json'],
-                        ) # no transforms in validation
-        validate_loader = torch.utils.data.DataLoader(
-                        validate_data,
-                        batch_size = config_dict['batch_size'],
-                        shuffle = config_dict['loader_shuffle'],
-                        num_workers = config_dict['loader_workers'],
-                        worker_init_fn = seed_worker,
-                        generator = gen,
-                        collate_fn = collate_function)
-
-    if config_dict['TEST']:
-        test_data = COCOLoader(
-                        root = config_dict['test_dir'], 
-                        json_root = config_dict['test_json'],
-                        ) # no transforms in test
-        test_loader = torch.utils.data.DataLoader(
-                        test_data,
-                        batch_size = config_dict['batch_size'],
-                        shuffle = config_dict['loader_shuffle'],
-                        num_workers = config_dict['loader_workers'],
-                        worker_init_fn = seed_worker,
-                        generator = gen,
-                        collate_fn = collate_function)
-    
     # ====== configuring model and solver =====================================
     # =========================================================================
     # get reqired model and set it to device
     model = model_selector(config_dict['model'], config_dict['num_classes'], 
                            config_dict['min_max'])
     model.to(device)
-    #print(model)
 
     # get optimizer
     params = [p for p in model.parameters() if p.requires_grad]

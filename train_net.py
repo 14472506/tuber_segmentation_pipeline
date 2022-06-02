@@ -309,7 +309,7 @@ def main(config_dict, seed=42):
         # plotting data
         plot_precision_recall(pr_dict['segm'], config_dict['plot_title'], config_dict['out_dir'])
         plot_cent_err(ce_dict, config_dict['plot_title'], config_dict['out_dir'])
-        #plot_f1_score(pr_dict['segm'], config_dict['plot_title'], config_dict['out_dir'])
+        plot_f1_score(pr_dict['segm'], config_dict['plot_title'], config_dict['out_dir'])
         
         # fps_value
         fps = fps_evaluate(model, config_dict['im_test_path'], device)
@@ -318,7 +318,7 @@ def main(config_dict, seed=42):
         # segmentation generation
         segment_instance(device, config_dict['im_test_path'], ['__background__', 'jersey_royal'], model, 
                          config_dict['plot_title'], config_dict['out_dir'])
-        centroid_instance(device, config_dict['im_test_path'], test_loader, model, config_dict['plot_title'], config_dict['out_dir'], thresh=0.5)
+        centroid_instance(device, config_dict['im_test_path'], test_loader, model, config_dict['plot_title'], config_dict['out_dir'], thresh=0.95)
         
 # =================================================================================================
 # Train_net execution
@@ -335,22 +335,28 @@ if __name__ == "__main__":
     TRAIN = True
     TEST = False
     LOAD = False
-    BEST = False
+    BEST = True
     
-    EPOCHS = 5
+    EPOCHS = 50
     BATCH_SIZE = 1
     WORKERS = 0
     ###############################################################################################
     
-    idx = 5
-    lr_list = [0.000005]
+    idx = 1
+    lr_list = [0.000001, 0.000005, 0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005]
     
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "TRANSFORMS_"+str(idx), BATCH_SIZE=1,
+        conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Shape_T_"+str(idx), BATCH_SIZE=1,
                                         WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
-                                        TRANSFORMS="simple")]
+                                        TRANSFORMS="shape_transforms"),
+                    configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Colour_T_"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
+                                        TRANSFORMS="colour_transforms"),
+                    configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Combine_T_"+str(idx), BATCH_SIZE=1,
+                                        WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
+                                        TRANSFORMS="combine_transforms")]
 
         # loop to train models through experiment
         for conf in conf_list:

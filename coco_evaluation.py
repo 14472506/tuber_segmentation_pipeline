@@ -169,7 +169,7 @@ class CocoEvaluator:
     def mAP_return(self):
         for iou_type, coco_eval in self.coco_eval.items():
             if iou_type == "segm":
-                mAP_val = self.coco_eval.mAP_return()
+                mAP_val = coco_eval.mAP_return()
                 return mAP_val
 
     def custom_evaluation(self):

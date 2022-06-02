@@ -217,7 +217,8 @@ def main(config_dict, seed=42):
             
             # validate one epoch
             acc_val_loss = validate_one_epoch(validate_loader, model, device)
-
+            
+            # testing mAP
             mAP_val = evaluate(model, validate_loader, device, config_dict['out_dir'],
                  train_flag=config_dict['TRAIN'])
             print(mAP_val)
@@ -283,8 +284,7 @@ def main(config_dict, seed=42):
 
     if config_dict['TEST']:
         # model evaluation
-        evaluate(model, test_loader, device, config_dict['out_dir'],
-                 test_flag=config_dict['TEST'])
+        evaluate(model, test_loader, device, config_dict['out_dir'])
         centroid_evaluation(model, test_loader, device, config_dict['out_dir'])
         
         # defining model locations 
@@ -325,10 +325,10 @@ if __name__ == "__main__":
     #            WORKERS=4 , MIN_MAX=[800, 1333], LR=0.005, NUM_EPOCHS=20,
     #            TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
     ###############################################################################################
-    TRAIN = False
-    TEST = True
-    LOAD = True
-    BEST = True
+    TRAIN = True
+    TEST = False
+    LOAD = False
+    BEST = False
     
     EPOCHS = 200
     BATCH_SIZE = 1

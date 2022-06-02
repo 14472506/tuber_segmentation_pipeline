@@ -506,7 +506,6 @@ class COCOeval:
         else:
             mean_s = np.mean(s[s>-1])
         
-        print(mean_s)
         return mean_s 
 
     def summarize(self):

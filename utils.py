@@ -13,7 +13,7 @@ import numpy as np
 
 
 # main loop ============================================================================
-def model_saver(epoch, model, optimizer, best_result, val_loss, path):
+def model_saver(epoch, model, optimizer, best_result, mAP, path):
     """
     Title       :
 
@@ -41,8 +41,8 @@ def model_saver(epoch, model, optimizer, best_result, val_loss, path):
     last_model_path = path + "/last_model.pth"
     torch.save(checkpoint, last_model_path)
 
-    if val_loss < best_result:
-        best_result = val_loss
+    if mAP > best_result:
+        best_result = mAP
         best_model_path = path + "/best_model.pth"
         torch.save(checkpoint, best_model_path)
     

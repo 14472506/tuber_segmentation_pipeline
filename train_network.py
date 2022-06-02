@@ -68,6 +68,7 @@ class TrainNetwork:
         self.transforms_assigner(conf_dict)
         self.loader_assigner(conf_dict)
         self.optimizer_load(conf_dict)
+        self.config_saver(conf_dict)
         
         # training loop initialisiation
         self.data_logging_init()
@@ -77,6 +78,8 @@ class TrainNetwork:
     def schedule_assigner(self, conf_dict):
         if conf_dict['lr_scheduler'] != "":
             self.scheduler = lr_scheduler_selector(conf_dict['lr_scheduler'])
+        else:
+            self.scheduler = None
 
     def transforms_assigner(self, conf_dict):
         if conf_dict['transforms'] != "":
@@ -98,6 +101,12 @@ class TrainNetwork:
             self.start_epoch = checkpoint["epoch"]
             for g in self.optimizer.param_groups:
                 g['lr'] = conf_dict['optimizer_params']['lr']
+    
+    def config_saver(self, conf_dict):
+        config_save = self.out_dir + "/model_configs.json"
+        make_dir(self.out_dir)
+        with open(config_save, 'w') as f:
+            json.dump(conf_dict, f)
     
     def data_logging_init(self):
         if self.train: 
@@ -136,6 +145,9 @@ class TrainNetwork:
         """
         details
         """
+        # sending model to device
+        self.model.to(self.device)
+        
         # executing training 
         if self.train:
             self.training_exe()
@@ -158,7 +170,7 @@ class TrainNetwork:
                                                 self.optimizer, self.print_freq, iter_count, epoch)
             
             # stepping scheduler if present
-            if self.scheduler:
+            if self.scheduler != None:
                 self.scheduler.step()
             
             # validating one epoch
@@ -248,7 +260,7 @@ if __name__ == "__main__":
     LOAD = False
     BEST = True
     
-    EPOCHS = 50
+    EPOCHS = 5
     BATCH_SIZE = 1
     WORKERS = 0
     ###############################################################################################

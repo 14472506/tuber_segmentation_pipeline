@@ -268,13 +268,10 @@ def get_centroid(mask):
     x_idx = int((len(x_points) - 1)/2)
     y_idx = int((len(y_points) - 1)/2)
     
-    print(x_idx, y_idx)
     if x_idx != 0 and y_idx != 0:
         centroid = [x_points[x_idx], y_points[y_idx]]
-        print(centroid)
     else:
         centroid = [nan, nan]
-        print(centroid)
     
     # returning centroid
     return(centroid)

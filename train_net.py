@@ -148,6 +148,10 @@ class TrainNetwork:
         # sending model to device
         self.model.to(self.device)
         
+        model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
+        params = sum([np.prod(p.size()) for p in model_parameters])
+        print(params)
+        
         # executing training 
         if self.train:
             self.training_exe()
@@ -272,9 +276,10 @@ if __name__ == "__main__":
     for i in lr_list:
         
         # setting up list of models
-        conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Shape_T_"+str(idx), BATCH_SIZE=1,
+
+        conf_list = [configs.conf_maker(TRAIN, TEST, "test_selector", "test_"+str(idx), BATCH_SIZE=1,
                                         WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
-                                        TRANSFORMS="shape_transforms", LR_SCHEDULER=LR_SCHEDULER)#,
+                                        TRANSFORMS="combine_transforms")#,
                     #configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Colour_T_"+str(idx), BATCH_SIZE=1,
                     #                    WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
                     #                    TRANSFORMS="colour_transforms"),

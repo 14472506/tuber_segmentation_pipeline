@@ -263,6 +263,7 @@ if __name__ == "__main__":
     EPOCHS = 5
     BATCH_SIZE = 1
     WORKERS = 0
+    LR_SCHEDULER = "lr_step"
     ###############################################################################################
     
     idx = 1
@@ -273,13 +274,14 @@ if __name__ == "__main__":
         # setting up list of models
         conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Shape_T_"+str(idx), BATCH_SIZE=1,
                                         WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
-                                        TRANSFORMS="shape_transforms"),
-                    configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Colour_T_"+str(idx), BATCH_SIZE=1,
-                                        WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
-                                        TRANSFORMS="colour_transforms"),
-                    configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Combine_T_"+str(idx), BATCH_SIZE=1,
-                                        WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
-                                        TRANSFORMS="combine_transforms")]
+                                        TRANSFORMS="shape_transforms", LR_SCHEDULER=LR_SCHEDULER)#,
+                    #configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Colour_T_"+str(idx), BATCH_SIZE=1,
+                    #                    WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
+                    #                    TRANSFORMS="colour_transforms"),
+                    #configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Combine_T_"+str(idx), BATCH_SIZE=1,
+                    #                    WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
+                    #                    TRANSFORMS="combine_transforms")
+                    ]
 
         # loop to train models through experiment
         for conf in conf_list:

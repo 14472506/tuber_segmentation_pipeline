@@ -13,6 +13,7 @@ def conf_maker(TRAIN,
                MIN_MAX=[800, 1333], 
                LR=0.005,
                NUM_EPOCHS=20,
+               LR_SCHEDULER="",
                TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
     """
     conf_maker generates a dictionary that is passed through the training/testing process 
@@ -53,7 +54,7 @@ def conf_maker(TRAIN,
                                       }
 
     # lr_scheduler
-    config_dict['lr_scheduler'] = "" 
+    config_dict['lr_scheduler'] = LR_SCHEDULER
 
     # training loop config
     config_dict['num_epochs'] = NUM_EPOCHS

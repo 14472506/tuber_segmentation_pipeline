@@ -64,10 +64,10 @@ class TrainNetwork:
         self.test_path = conf_dict['im_test_path']
 
         # calling attribute assigning methods  
-        self.schedule_assigner(conf_dict)
         self.transforms_assigner(conf_dict)
         self.loader_assigner(conf_dict)
         self.optimizer_load(conf_dict)
+        self.schedule_assigner(conf_dict)
         self.config_saver(conf_dict)
         
         # training loop initialisiation
@@ -77,7 +77,7 @@ class TrainNetwork:
     # config methods
     def schedule_assigner(self, conf_dict):
         if conf_dict['lr_scheduler'] != "":
-            self.scheduler = lr_scheduler_selector(conf_dict['lr_scheduler'])
+            self.scheduler = lr_scheduler_selector(conf_dict['lr_scheduler'], self.optimizer, 3, 0.1)
         else:
             self.scheduler = None
 
@@ -264,17 +264,19 @@ if __name__ == "__main__":
     LOAD = False
     BEST = True
     
-    EPOCHS = 5
+    EPOCHS = 10
     BATCH_SIZE = 1
     WORKERS = 0
+    LR_SCHEDULER = "lr_step"
     ###############################################################################################
     
     idx = 1
-    lr_list = [0.000001, 0.000005, 0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005]
+    lr_list = [0.001]
     
     for i in lr_list:
         
         # setting up list of models
+
         conf_list = [configs.conf_maker(TRAIN, TEST, "test_selector", "test_"+str(idx), BATCH_SIZE=1,
                                         WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
                                         TRANSFORMS="combine_transforms")#,

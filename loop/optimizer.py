@@ -20,7 +20,7 @@ def lr_scheduler_selector(scheduler_type, optimizer, scheduler_params):
     detials
     """
     if scheduler_type == "lr_step":
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=scheduler_params[0]
-        , gamma=scheduler_params[1])
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=scheduler_params[0],
+                                                        gamma=scheduler_params[1])
 
     return(lr_scheduler)

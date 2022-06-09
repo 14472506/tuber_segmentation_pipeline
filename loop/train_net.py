@@ -175,6 +175,11 @@ class TrainNetwork:
             # stepping scheduler if present
             if self.scheduler != None:
                 self.scheduler.step()
+
+                if epoch != 0:
+                    if epoch % self.scheduler_params[0] == 0:
+                        dir =  self.out_dir + "/best_model.pth"
+                        self.model = torch.load(dir)
             
             # validating one epoch
             acc_val_loss = validate_one_epoch(self.val_loader, self.model, self.device)#

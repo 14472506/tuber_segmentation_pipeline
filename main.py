@@ -18,11 +18,11 @@ def main():
     EPOCHS = 10
     BATCH_SIZE = 1
     WORKERS = 0
-    LR_SCHEDULER = ""
+    LR_SCHEDULER = "lr_step"
     SCH_PARAMS = [5, 0.001]
 
     # loops params
-    idx = 2
+    idx = 3
     lr_list = [0.005]
 
     for i in lr_list: 

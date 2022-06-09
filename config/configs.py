@@ -14,7 +14,7 @@ def conf_maker(TRAIN,
                LR=0.005,
                NUM_EPOCHS=20,
                LR_SCHEDULER="",
-               TEST_IM_STR="data/jersey_royal_dataset/test/169.JPG"):
+               TEST_IM_STR="data/data/jersey_royal_dataset/test/169.JPG"):
     """
     conf_maker generates a dictionary that is passed through the training/testing process 
     """
@@ -22,12 +22,12 @@ def conf_maker(TRAIN,
     config_dict = {}
 
     # data set locations
-    config_dict['train_dir'] = "data/jersey_royal_dataset/train"
-    config_dict['train_json'] = "data/jersey_royal_dataset/train/train.json"
-    config_dict['validate_dir'] = "data/jersey_royal_dataset/val"
-    config_dict['validate_json'] = "data/jersey_royal_dataset/val/val.json"
-    config_dict['test_dir'] = "data/jersey_royal_dataset/test"
-    config_dict['test_json'] = "data/jersey_royal_dataset/test/test.json"
+    config_dict['train_dir'] = "data/data/jersey_royal_dataset/train"
+    config_dict['train_json'] = "data/data/jersey_royal_dataset/train/train.json"
+    config_dict['validate_dir'] = "data/data/jersey_royal_dataset/val"
+    config_dict['validate_json'] = "data/data/jersey_royal_dataset/val/val.json"
+    config_dict['test_dir'] = "data/data/jersey_royal_dataset/test"
+    config_dict['test_json'] = "data/data/jersey_royal_dataset/test/test.json"
 
     # Train and Test flags
     config_dict['TRAIN'] = TRAIN

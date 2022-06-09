@@ -4,14 +4,61 @@ Details
 # ===========================
 # Import libraries/packages
 # ===========================
-from cProfile import label
-from turtle import title
-from unittest import result
 from matplotlib import pyplot as plt
+
+from loop.engine import centroid_error
 
 # ===========================
 # Functions
 # ===========================
+class ResultPlotter:
+    """
+    Detials
+    """
+    def __init__(self, plot_title, save_loc, prec_rec_dict, cent_error):
+        """
+        Detials
+        """
+        self.plot_title = plot_title
+        self.save_loc = save_loc
+        self.precision_recall_dict = prec_rec_dict
+        self.cent_error = cent_error
+    
+    def plot_prec_rec(self):
+
+        plt.figure()
+        for key, val in self.precision_recall_dict.items():
+            if key != 'recall':
+                plt.plot(self.precision_recall_dict['recall'], val, label=key)
+        plt.xlabel("recall")
+        plt.ylabel("precision")
+        plt.title(self.plot_title)
+        plt.legend()
+
+        plot_string = self.save_loc + "/" + self.plot_title + "_precision_recall.png"
+        plt.savefig(plot_string)    
+    
+        plt.close()
+
+    def plot_f1_score(self):
+        print("something")
+
+    def plot_cent_error(self):
+ 
+        thresh_list = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+        avg_cent_err = []
+    
+        for key ,item in self.cent_error.items():
+            list_avgs = []
+        
+            for list in item:
+                # calculating average
+                avg = round(sum(list)/len(list), 3)
+                list_avgs.append(avg)
+        
+            avg2 = round(sum(list_avgs)/len(list_avgs), 3)
+            avg_cent_err.append(avg2)
+
 def plot_lr_loss(loss_dict, title_string, save_loc):
     
     # getting epoch list
@@ -47,26 +94,7 @@ def plot_lr_loss(loss_dict, title_string, save_loc):
     plt.savefig(plot_string)
     plt.close()
 
-def plot_precision_recall(results_dict, title_string, save_loc):
-
-    plt.figure()
-    # looping through dict to build plot
-    for key, val in results_dict.items():
-        if key != 'recall':
-            plt.plot(results_dict['recall'], val, label = key)
-    
-    # labelling and formatting plot
-    plt.xlabel("recall")
-    plt.ylabel("precision")
-    plt.title(title_string)
-    plt.legend()
-
-    # saving plot
-    plot_string = save_loc + "/" + title_string + "_precision_recall.png"
-    plt.savefig(plot_string)    
-    
-    plt.close()
-
+###################################################################################################
 def plot_f1_score(results_dict, title_string, save_loc):
 
     plt.figure()

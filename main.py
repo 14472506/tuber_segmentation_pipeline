@@ -27,9 +27,9 @@ def main():
 
     for i in lr_list: 
         # setting up list of models
-        conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "test_"+str(idx), BATCH_SIZE=1,
+        conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "test_"+str(idx), BATCH_SIZE=BATCH_SIZE,
                                         WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
-                                        TRANSFORMS="combine_transforms", LR_SCHEDULER="lr_step", SCHEDULER_PARAMS=SCH_PARAMS)#,
+                                        TRANSFORMS="combine_transforms", LR_SCHEDULER=LR_SCHEDULER, SCHEDULER_PARAMS=SCH_PARAMS)#,
                     #configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Colour_T_"+str(idx), BATCH_SIZE=1,
                     #                    WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
                     #                    TRANSFORMS="colour_transforms"),

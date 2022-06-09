@@ -25,7 +25,7 @@ import time
 import json
 
 # from packages
-import loop.utils
+import loop.utils as utils
 from data.dataloader import convert_to_coco_api
 
 # ===========================

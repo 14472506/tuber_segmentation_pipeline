@@ -23,10 +23,10 @@ import time
 
 # package imports
 from models.models import model_selector
-from optimizer import optimizer_selector, lr_scheduler_selector
-from engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance, centroid_error, centroid_instance
+from .optimizer import optimizer_selector, lr_scheduler_selector
+from .engine import train_one_epoch, validate_one_epoch, fps_evaluate, segment_instance, centroid_error, centroid_instance
 from data.transforms import transform_selector
-from utils import model_saver, make_dir, time_converter, set_seed, data_loader_manager
+from .utils import model_saver, make_dir, time_converter, set_seed, data_loader_manager
 from evaluation.coco_evaluation import evaluate
 import config.configs as configs
 from evaluation.plotter import plot_lr_loss, plot_precision_recall, plot_f1_score, plot_cent_err

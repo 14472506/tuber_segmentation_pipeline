@@ -128,7 +128,7 @@ class ResnetSelector:
     """
     details
     """
-    def __init__(self, num_classes, min_max, backbone, train_layers, trained=True):
+    def __init__(self, num_classes, min_max, backbone, train_layers=5, trained=True):
         # getting attributes
         self.backbone = backbone = resnet_fpn_backbone(backbone, pretrained=trained,
                                                        trainable_layers=train_layers) 

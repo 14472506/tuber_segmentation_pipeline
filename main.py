@@ -31,7 +31,7 @@ if __name__ == "__main__":
         
         # setting up list of models
 
-        conf_list = [configs.conf_maker(TRAIN, TEST, "test_selector", "test_"+str(idx), BATCH_SIZE=1,
+        conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "test_"+str(idx), BATCH_SIZE=1,
                                         WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
                                         TRANSFORMS="combine_transforms")#,
                     #configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Colour_T_"+str(idx), BATCH_SIZE=1,

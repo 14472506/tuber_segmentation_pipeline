@@ -127,6 +127,12 @@ def MaskRCNN_mobilenetv2(num_classes, min_max):
 class ResnetSelector:
     """
     details
+    Look into following link for modifications into resnet fpn backbone for varying trainable
+    layers:
+    - https://akashprakas.github.io/My-blog/jupyter/2020/12/19/Hacking_fasterRcnn.html
+
+    - from above, run model as is. with anchor generator commented out, this will allow the
+      number of layers to be varied for the resnets with FPN.
     """
     def __init__(self, num_classes, min_max, backbone, train_layers=5, trained=True):
         # getting attributes
@@ -141,27 +147,28 @@ class ResnetSelector:
     
     def get_model(self):
         # getting anchor generator
-        anchor_generator = AnchorGenerator(
-        sizes=((16,), (32,), (64,), (128,), (256,)),
-        aspect_ratios=tuple([(0.25, 0.5, 1.0, 2.0) for _ in range(self.train_layers)]))
+        #anchor_generator = AnchorGenerator(
+        #sizes=((16,), (32,), (64,), (128,), (256,)),
+        #aspect_ratios=tuple([(0.25, 0.5, 1.0, 2.0) for _ in range(self.train_layers)]))
 
         # getting roi pooler
-        roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'],
-                                                    output_size=7, sampling_ratio=2)
+        #roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'],
+        #                                            output_size=7, sampling_ratio=2)
 
         # getting mask roi pooler 
-        mask_roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'],
-                                                         output_size=14,
-                                                         sampling_ratio=2)
+        #mask_roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'],
+        #                                                 output_size=14,
+        #                                                 sampling_ratio=2)
 
         # model
         self.model = MaskRCNN(self.backbone,
                          num_classes=self.num_classes,
                          min_size=self.min_max[0],
                          max_size=self.min_max[1],
-                         rpn_anchor_generator=anchor_generator,
-                         box_roi_pool=roi_pooler,
-                         mask_roi_pool=mask_roi_pooler)
+        #                 rpn_anchor_generator=anchor_generator,
+        #                 box_roi_pool=roi_pooler,
+        #                 mask_roi_pool=mask_roi_pooler
+        )
         
         # get number of input features for the classifier
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features

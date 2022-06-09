@@ -19,6 +19,7 @@ def main():
     BATCH_SIZE = 1
     WORKERS = 0
     LR_SCHEDULER = "lr_step"
+    SCH_PARAMS = [50, 0.1]
 
     # loops params
     idx = 1
@@ -28,7 +29,7 @@ def main():
         # setting up list of models
         conf_list = [configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "test_"+str(idx), BATCH_SIZE=1,
                                         WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
-                                        TRANSFORMS="combine_transforms")#,
+                                        TRANSFORMS="combine_transforms", LR_SCHEDULER="lr_step", SCHEDULER_PARAMS=SCH_PARAMS)#,
                     #configs.conf_maker(TRAIN, TEST, "Mask_RCNN_R50_FPN", "Colour_T_"+str(idx), BATCH_SIZE=1,
                     #                    WORKERS=WORKERS, LR=i, NUM_EPOCHS=EPOCHS, LOAD_FLAG=LOAD, LOAD_BEST=BEST, 
                     #                    TRANSFORMS="colour_transforms"),

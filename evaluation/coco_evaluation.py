@@ -14,7 +14,7 @@ import torchvision
 from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
 import pycocotools.mask as mask_util
-from custom_coco_eval import COCOeval
+from evaluation.custom_coco_eval import COCOeval
 
 # general imports
 import copy
@@ -26,7 +26,7 @@ import json
 
 # from packages
 import utils
-from dataloader import convert_to_coco_api
+from data.dataloader import convert_to_coco_api
 
 # ===========================
 # evaluate function and supporting functions

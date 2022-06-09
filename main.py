@@ -16,10 +16,10 @@ def main():
     
     # othere params
     EPOCHS = 10
-    BATCH_SIZE = 1
+    BATCH_SIZE = 2
     WORKERS = 0
     LR_SCHEDULER = "lr_step"
-    SCH_PARAMS = [5, 0.001]
+    SCH_PARAMS = [2, 0.001]
 
     # loops params
     idx = 3

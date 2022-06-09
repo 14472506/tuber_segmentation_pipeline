@@ -179,7 +179,8 @@ class TrainNetwork:
                 if epoch != 0:
                     if epoch % self.scheduler_params[0] == 0:
                         dir =  self.out_dir + "/best_model.pth"
-                        self.model = torch.load(dir)
+                        checkpoint = torch.load(dir)
+                        self.model.load_state_dict(checkpoint["state_dict"])
             
             # validating one epoch
             acc_val_loss = validate_one_epoch(self.val_loader, self.model, self.device)#

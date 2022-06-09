@@ -22,7 +22,7 @@ def main():
     SCH_PARAMS = [5, 0.001]
 
     # loops params
-    idx = 1
+    idx = 2
     lr_list = [0.005]
 
     for i in lr_list: 

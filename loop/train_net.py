@@ -29,7 +29,7 @@ from data.transforms import transform_selector
 from .utils import model_saver, make_dir, time_converter, set_seed, data_loader_manager
 from evaluation.coco_evaluation import evaluate
 import config.configs as configs
-from evaluation.plotter import plot_lr_loss, plot_precision_recall, plot_f1_score, plot_cent_err
+from evaluation.plotter import plot_lr_loss#, plot_precision_recall, plot_f1_score, plot_cent_err
 # =================================================================================================
 # Train_net implementation
 # =================================================================================================
@@ -232,7 +232,7 @@ class TrainNetwork:
             ce_file.close()
 
         # plotting data
-        plot_precision_recall(pr_dict['segm'], self.plot_title, self.out_dir)
+        #plot_precision_recall(pr_dict['segm'], self.plot_title, self.out_dir)
         #plot_cent_err(ce_dict, self.plot_title, self.out_dir)
         #plot_f1_score(pr_dict['segm'], self.plot_title, self.out_dir)
 

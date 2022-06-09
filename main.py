@@ -19,11 +19,11 @@ def main():
     BATCH_SIZE = 1
     WORKERS = 0
     LR_SCHEDULER = "lr_step"
-    SCH_PARAMS = [50, 0.1]
+    SCH_PARAMS = [5, 0.001]
 
     # loops params
     idx = 1
-    lr_list = [0.001]
+    lr_list = [0.005]
 
     for i in lr_list: 
         # setting up list of models

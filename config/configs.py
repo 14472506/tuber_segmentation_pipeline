@@ -13,6 +13,7 @@ def conf_maker(TRAIN,
                MIN_MAX=[800, 1333], 
                LR=0.005,
                NUM_EPOCHS=20,
+               OPTIMIZER = "SGD",
                LR_SCHEDULER="",
                SCHEDULER_PARAMS=[],
                TEST_IM_STR="data/data/jersey_royal_dataset/test/169.JPG"):
@@ -48,11 +49,17 @@ def conf_maker(TRAIN,
     config_dict['min_max'] = MIN_MAX
 
     # optimizer config
-    config_dict['optimizer'] = "SGD"
-    config_dict['optimizer_params'] = {'lr': LR,
-                                       'momentum': 0.9,
-                                       'weight_decay': 0.0005
-                                      }
+    config_dict['optimizer'] = OPTIMIZER
+    if OPTIMIZER == "SGD":
+        config_dict['optimizer_params'] = {'lr': LR,
+                                           'momentum': 0.9,
+                                           'weight_decay': 0.0005
+                                          }
+    if OPTIMIZER == "Adam":
+        config_dict['optimizer_params'] = {'lr': LR#,
+                                           #'momentum': 0.9,
+                                           #'weight_decay': 0.0005
+                                          }
 
     # lr_scheduler
     config_dict['lr_scheduler'] = LR_SCHEDULER

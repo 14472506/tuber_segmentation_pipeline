@@ -13,6 +13,7 @@ Edited by:  Bradley Hurst
 # =================================================================================================
 # pytorch imports
 import json
+from sched import scheduler
 import torch 
 import torchvision.transforms as T
 
@@ -77,8 +78,10 @@ class TrainNetwork:
         if conf_dict['lr_scheduler'] != "":
             self.scheduler = lr_scheduler_selector(conf_dict['lr_scheduler'], self.optimizer,
                                                     self.scheduler_params)
+            self.scheduler_title = conf_dict['lr_scheduler']
         else:
             self.scheduler = None
+            self.scheduler_title = None
 
     def transforms_assigner(self, conf_dict):
         if conf_dict['transforms'] != "":
@@ -139,6 +142,39 @@ class TrainNetwork:
                 'mAP_val': [],
                 'epoch': []
             }
+            
+            self.step_model = {
+                "mAP_val": [],
+                "epoch": []
+            }
+    
+    def loop_loader_logic(self, epoch):
+        """
+        determins how best model is loaded as scheduler step based on scheduler type
+        """
+        if self.scheduler_title == "step":
+            if epoch != 0:
+                if epoch % self.scheduler_params[0] == 0:
+                    self.loop_loader(epoch)
+
+        if self.scheduler_title == "multi_step":
+                if epoch in self.scheduler_params[0]:
+                    self.loop_loader(epoch)
+        
+    def loop_loader(self, epoch):
+        """
+        Detials
+        """
+        dir =  self.out_dir + "/best_model.pth"
+        checkpoint = torch.load(dir)
+        self.model.load_state_dict(checkpoint["state_dict"])
+        
+        mAP_val = max(self.best_model["mAP_val"])
+        idx = self.best_model["mAP_val"].index(mAP_val)
+        epoch_val = self.best_model["epoch"][idx]
+        
+        self.step_model["mAP_val"].append(mAP_val)
+        self.step_model["epoch"].append(epoch_val)
 
     def main(self):
         """
@@ -176,11 +212,8 @@ class TrainNetwork:
             if self.scheduler != None:
                 self.scheduler.step()
 
-                if epoch != 0:
-                    if epoch % self.scheduler_params[0] == 0:
-                        dir =  self.out_dir + "/best_model.pth"
-                        checkpoint = torch.load(dir)
-                        self.model.load_state_dict(checkpoint["state_dict"])
+                # calling loop_loader logic
+                self.loop_loader_logic(epoch)
             
             # validating one epoch
             acc_val_loss = validate_one_epoch(self.val_loader, self.model, self.device)#
@@ -211,7 +244,8 @@ class TrainNetwork:
             'train_loss': self.train_loss,
             'val_loss': self.val_loss,
             'val_eval': self.val_eval,
-            'best_val': self.best_model
+            'best_val': self.best_model,
+            'step_val': self.step_model
         }
         
         # saving data in json

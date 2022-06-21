@@ -16,7 +16,7 @@ def main():
     
     # othere params
     EPOCHS = 3
-    BATCH_SIZE = 2
+    BATCH_SIZE = 1
     WORKERS = 0
     LR_SCHEDULER = "multi_step"
     SCH_PARAMS = [[1, 2], 0.1]
@@ -29,7 +29,7 @@ def main():
         # setting up list of models
         conf_list = [configs.conf_maker(TRAIN,
                                         TEST,
-                                        "Mask_RCNN_R50_FPN",
+                                        "test_selector",
                                         "Saver_test_"+str(i),
                                         BATCH_SIZE=BATCH_SIZE,
                                         WORKERS=WORKERS,
@@ -37,7 +37,7 @@ def main():
                                         NUM_EPOCHS=EPOCHS,
                                         LOAD_FLAG=LOAD, 
                                         LOAD_BEST=BEST, 
-                                        OPTIMIZER = "Adam",
+                                        OPTIMIZER = "SGD",
                                         TRANSFORMS="combine_transforms",
                                         LR_SCHEDULER=LR_SCHEDULER,
                                         SCHEDULER_PARAMS=SCH_PARAMS)#,

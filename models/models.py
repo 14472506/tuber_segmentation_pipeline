@@ -41,42 +41,36 @@ def model_selector(model_title, num_classes, min_max):
     if model_title == "Mask_RCNN_R34_FPN":
         get_model = ResnetSelector(num_classes, min_max, 'resnet34')
         model = get_model.return_model()
-        
-    if model_title == "test_selector":
-        get_model = ResnetSelector(num_classes, min_max, 'resnet50')
+
+    if model_title == "Mask_RCNN_101_FPN":
+        get_model = ResnetSelector(num_classes, min_max, 'resnet101')
         model = get_model.return_model()
     
+    if model_title == "Mask_RCNN_152_FPN":
+        get_model = ResnetSelector(num_classes, min_max, 'resnet152')
+        model = get_model.return_model()
+
+    if model_title == "Mask_RCNN_X101_FPN":
+        get_model = ResnetSelector(num_classes, min_max, 'resnext101_32x8d')
+        model = get_model.return_model()
+
+    if model_title == "Mask_RCNN_X50_FPN":
+        get_model = ResnetSelector(num_classes, min_max, 'resnext50_32x4d')
+        model = get_model.return_model()
+        
+    if model_title == "MasK_RCNN_MNET_SMALL":
+        get_model = MobilenetSelector(num_classes, min_max, 'mobilenetv3_small')
+        model = get_model.return_model()
+
+    if model_title == "MasK_RCNN_MNET_LARGE":
+        get_model = MobilenetSelector(num_classes, min_max, 'mobilenetv3_large')
+        model = get_model.return_model()
+
     return(model)
     
 # ============================
 # Model call functions
 # ============================
-# Mask R-CNN, currently with resnet50 backbone
-def MaskRCNN_R50_FPN_Basic(num_classes, min_max):
-    # load an instance segmentation model pre-trained on COCO
-
-    model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
-
-    # setting min, max inpyt dimensions
-    model.min_size = min_max[0]
-    model.max_size = min_max[1]
-
-    # get number of input features for the classifier
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    # replace the pre-trained head with a new one
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-
-    # now get the number of input features for the mask classifier
-    in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
-    hidden_layer = 256
-
-    # and replace the mask predictor with a new one
-    model.roi_heads.mask_predictor = MaskRCNNPredictor(in_features_mask,
-                                                       hidden_layer,
-                                                       num_classes)
-
-    return model
-
 def MaskRCNN_mobilenetv2(num_classes, min_max):
     # laoding pretrained backbone but returning only features
     backbone = torchvision.models.mobilenet_v2(pretrained=True).features   
@@ -123,7 +117,66 @@ def MaskRCNN_mobilenetv2(num_classes, min_max):
 
     return model
 
+class MobilenetSelector:
+    """
+    Details
+    """
+    def __init__(self, num_classes, min_max, backbone, trained=True):
+        self.num_classes = num_classes
+        self.min_max = min_max
+        self.backbone = self.backbone_selector(backbone)
+        
+        # creating model
+        self.get_model()
+       
+    def backbone_selector(self, backbone_title, pretrained=True):
 
+        if backbone_title == "mobilenetv3_small":
+            backbone = torchvision.models.mobilenet_v3_small(pretrained).features
+            backbone.out_channels = 576
+
+        if backbone_title == "mobilenetv3_large":
+            backbone = torchvision.models.mobilenet_v3_large(pretrained).features
+            backbone.out_channels = 960
+        
+        return backbone
+
+    def get_model(self):
+    
+        anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
+                                           aspect_ratios=((0.5, 1.0, 2.0),))
+        # define roi features for roi cropping 
+        roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
+                                                        output_size=7,
+                                                        sampling_ratio=2)
+        # define mask pooler for mask 
+        mask_roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
+                                                             output_size=14,
+                                                             sampling_ratio=2)
+        # getting model                                              
+        self.model = MaskRCNN(self.backbone,
+                     num_classes=2,
+                     min_size=self.min_max[0],
+                     max_size=self.min_max[1],
+                     rpn_anchor_generator=anchor_generator,
+                     box_roi_pool=roi_pooler,
+                     mask_roi_pool=mask_roi_pooler)
+    
+        # get number of input features for the classifier
+        in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+        # replace the pre-trained head with a new one
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, self.num_classes)
+        # now get the number of input features for the mask classifier
+        in_features_mask = self.model.roi_heads.mask_predictor.conv5_mask.in_channels
+        hidden_layer = 256
+        # and replace the mask predictor with a new one
+        self.model.roi_heads.mask_predictor = MaskRCNNPredictor(in_features_mask,
+                                                           hidden_layer,
+                                                           self.num_classes)  
+
+    def return_model(self):
+        return(self.model)
+    
 class ResnetSelector:
     """
     details

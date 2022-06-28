@@ -15,21 +15,21 @@ def main():
     BEST = True
     
     # othere params
-    EPOCHS = 3
-    BATCH_SIZE = 1
-    WORKERS = 0
-    LR_SCHEDULER = "multi_step"
-    SCH_PARAMS = [[1, 2], 0.1]
+    EPOCHS = 50
+    BATCH_SIZE = 2
+    WORKERS = 4
+    LR_SCHEDULER = "step"
+    SCH_PARAMS = [50, 0.1]
 
     # loops params
     idx = 0
-    lr_list = [0.00005]
+    lr_list = [0.005]
 
     for i in lr_list: 
         # setting up list of models
         conf_list = [configs.conf_maker(TRAIN,
                                         TEST,
-                                        "test_selector",
+                                        "Mask_RCNN_R50_FPN",
                                         "Saver_test_"+str(i),
                                         BATCH_SIZE=BATCH_SIZE,
                                         WORKERS=WORKERS,

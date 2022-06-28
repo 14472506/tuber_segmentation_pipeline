@@ -187,7 +187,7 @@ class ResnetSelector:
     - from above, run model as is. with anchor generator commented out, this will allow the
       number of layers to be varied for the resnets with FPN.
     """
-    def __init__(self, num_classes, min_max, backbone, train_layers=5, trained=True):
+    def __init__(self, num_classes, min_max, backbone, train_layers=4, trained=True):
         # getting attributes
         self.backbone = backbone = resnet_fpn_backbone(backbone, pretrained=trained,
                                                        trainable_layers=train_layers) 

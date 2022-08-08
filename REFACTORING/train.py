@@ -14,7 +14,6 @@ Edited by:  Bradley Hurst
 # pytorch imports
 import json
 
-from sklearn.metrics import log_loss
 import torch 
 import torchvision.transforms as T
 
@@ -24,13 +23,11 @@ import random
 import time
 
 # package imports
-from models.models import model_selector
-from .optimizer import optimizer_selector, lr_scheduler_selector
-from data.transforms import transform_selector
-from .utils import model_saver, make_dir, time_converter, set_seed
-from evaluation.coco_evaluation import evaluate
+from models import model_selector
+from transforms import transform_selector
+from utils import make_dir
+from coco_evaluation import evaluate
 import config.configs as configs
-
 from data_loader import PipelineDataLoader
 
 # =================================================================================================
@@ -82,7 +79,7 @@ class TrainNet():
         self.model = model_selector(self.model_name, self.num_classes, 
                                     self.max_min) 
         self.params = [p for p in self.model.parameters() if p.requires_grad]
-        self.optimizer = optimizer_selector(self.optimizer_name,
+        self.optimizer = self.optimizer_selector(self.optimizer_name,
                                    self.params,
                                    self.optimzier_parameters)
         
@@ -130,7 +127,7 @@ class TrainNet():
     # defining scheduling assistant
     def schedule_assigner(self):
         if self.scheduler_name != "":
-            self.scheduler = lr_scheduler_selector(self.scheduler_name, self.optimizer,
+            self.scheduler = self.lr_scheduler_selector(self.scheduler_name, self.optimizer,
                                                     self.scheduler_params)
         else:
             self.scheduler = None
@@ -300,7 +297,46 @@ class TrainNet():
         
         self.step_model["mAP_val"].append(mAP_val)
         self.step_model["epoch"].append(epoch_val)
-    
+
+    # optimizer selector function
+    def optimizer_selector(self):
+        """
+        Details
+        """
+        # for SGD optimizer
+        if self.optimizer_name == "SGD":
+            optimizer = torch.optim.SGD(self.params, 
+                                        lr = self.optimizer_params['lr'],
+                                        momentum = self.optimizer_params['momentum'],
+                                        weight_decay = self.optimizer_params['weight_decay'])
+
+        # for ADAM optimizer
+        if self.optimizer_name == "Adam":
+            optimizer = torch.optim.Adam(self.params, lr = self.optimizer_params['lr'])
+
+        # return optimizer
+        return optimizer
+     
+    # learning rate scheduler selector
+    def lr_scheduler_selector(self):
+        """
+        detials
+        """
+        # step scheduling
+        if self.scheduler_name == "step":
+            lr_scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 
+                                                           step_size=self.scheduler_params[0],
+                                                           gamma=self.scheduler_params[1])
+
+        # multi step scheduling
+        if self.scheduler_name == "multi_step":
+            lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
+                                                                milestones=self.scheduler_params[0],
+                                                                gamma=self.scheduler_params[1])
+
+        # returning scheduler
+        return(lr_scheduler)
+
     # validate one epoch
     def validate_one_epoch(self):
         """
@@ -350,7 +386,7 @@ class TrainNet():
 
     def model_saver(self, epoch, best_result, mAP, path):
         """
-
+        Details
         """
         # check if output dir exists, if not make dir
         make_dir(path)
@@ -375,6 +411,7 @@ class TrainNet():
 
     def time_converter(self, seconds):
         """
+        Detials
         """
         hours = seconds // 3600
         seconds %= 3600

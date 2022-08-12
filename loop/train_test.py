@@ -207,7 +207,7 @@ class TrainNetwork:
                                 train_flag=self.train)
 
             # collecting data
-            self.training_data['training_total'].append(sum(acc_train_loss['total']) / len(acc_train_loss['total']))
+            self.training_data['train_total'].append(sum(acc_train_loss['total']) / len(acc_train_loss['total']))
             self.training_data['val_total'].append(sum(acc_val_loss['total']) / len(acc_val_loss['total']))
             self.training_data['val_mAP'].append(mAP_val)
 

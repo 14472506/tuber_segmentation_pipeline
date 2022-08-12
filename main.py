@@ -2,7 +2,7 @@
 Details
 """
 # imports
-from loop.train_net import TrainNetwork
+from loop.train_test import TrainNetwork
 import config.configs as configs
 
 # main function

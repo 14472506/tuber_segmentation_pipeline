@@ -57,21 +57,67 @@ class TrainNetwork:
         self.test = conf_dict['TEST']
         self.num_epochs = conf_dict['num_epochs']
         self.print_freq = conf_dict['print_freq']
-        self.loss_dict = {}
         self.plot_title = conf_dict['plot_title']
         self.test_path = conf_dict['im_test_path']
         self.scheduler_params = conf_dict['scheduler_params']
+        self.training_data = {
+            'train_total': [],
+            'train_classifier': [],
+            'train_box_reg': [],
+            'train_mask': [],
+            'train_objectness': [],
+            'train_rpn_box_reg': [],
+            'val_total:': [],
+            'val_classifier': [],
+            'val_box_reg': [],
+            'val_mask': [],
+            'val_objectness': [],
+            'val_rpn_box_reg': [],
+            'val_mAP': [],
+            'best_mAP': [],
+            'step_mAP': [],
+            'best_epoch': [],
+            'step_epoch': [],
+            'parameters': None
+        }
 
         # calling attribute assigning methods  
-        self.transforms_assigner(conf_dict)
         self.loader_assigner(conf_dict)
         self.optimizer_load(conf_dict)
         self.schedule_assigner(conf_dict)
-        self.config_saver(conf_dict)
+
+        # save exp_configuration
+        config_save = self.out_dir + "/model_configs.json"
+        make_dir(self.out_dir)
+        with open(config_save, 'w') as f:
+            json.dump(conf_dict, f)
         
         # training loop initialisiation
-        self.data_logging_init()
         self.main()
+    
+    # =========================================================================================== #
+    # ----- Init function calls ----------------------------------------------------------------- #
+    # =========================================================================================== # 
+    
+    def loader_assigner(self, conf_dict):
+        if conf_dict['transforms'] != "":
+            self.transforms = transform_selector(conf_dict['transforms'])
+        else:
+            self.transforms = None
+        tr_load, v_load, te_load = data_loader_manager(conf_dict, self.seed, self.transforms)
+        self.train_loader = tr_load
+        self.val_loader = v_load
+        self.test_loader = te_load
+    
+    # something
+    def optimizer_load(self, conf_dict):
+        if conf_dict['load_flag']:
+            checkpoint = torch.load(conf_dict["load"])
+            self.model.load_state_dict(checkpoint["state_dict"])
+            self.optimizer.load_state_dict(checkpoint["optimizer"])
+            self.start_epoch = checkpoint["epoch"]
+            for g in self.optimizer.param_groups:
+                g['lr'] = conf_dict['optimizer_params']['lr']
     
     # config methods
     def schedule_assigner(self, conf_dict):
@@ -82,72 +128,29 @@ class TrainNetwork:
         else:
             self.scheduler = None
             self.scheduler_title = None
-
-    def transforms_assigner(self, conf_dict):
-        if conf_dict['transforms'] != "":
-            self.transforms = transform_selector(conf_dict['transforms'])
-        else:
-            self.transforms = None
-
-    def loader_assigner(self, conf_dict):
-        tr_load, v_load, te_load = data_loader_manager(conf_dict, self.seed, self.transforms)
-        self.train_loader = tr_load
-        self.val_loader = v_load
-        self.test_loader = te_load
     
-    def optimizer_load(self, conf_dict):
-        if conf_dict['load_flag']:
-            checkpoint = torch.load(conf_dict["load"])
-            self.model.load_state_dict(checkpoint["state_dict"])
-            self.optimizer.load_state_dict(checkpoint["optimizer"])
-            self.start_epoch = checkpoint["epoch"]
-            for g in self.optimizer.param_groups:
-                g['lr'] = conf_dict['optimizer_params']['lr']
-    
-    def config_saver(self, conf_dict):
-        config_save = self.out_dir + "/model_configs.json"
-        make_dir(self.out_dir)
-        with open(config_save, 'w') as f:
-            json.dump(conf_dict, f)
-    
-    def data_logging_init(self):
-        if self.train: 
-
-            # training loss dict
-            self.train_loss = {
-                'total': [],
-                #'classifier': [],
-                #'box_reg': [],
-                #'mask': [],
-                #'objectness': [],
-                #'rpn_box_reg': []
-            }
+    def main(self):
+        """
+        details
+        """
+        # sending model to device
+        self.model.to(self.device)
         
-            # validation loss dict
-            self.val_loss = {
-                'total': [],
-                #'classifier': [],
-                #'box_reg': [],
-                #'mask': [],
-                #'objectness': [],
-                #'rpn_box_reg': []
-            }
+        model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
+        params = sum([np.prod(p.size()) for p in model_parameters])
+        self.training_data['parameters'] = params
         
-            # evaluation dicitionary
-            self.val_eval = {
-                'mAP': []
-            }
-        
-            self.best_model = {
-                'mAP_val': [],
-                'epoch': []
-            }
-            
-            self.step_model = {
-                "mAP_val": [],
-                "epoch": []
-            }
-    
+        # executing training 
+        if self.train:
+            self.training_exe()
+
+        # executing testing
+        if self.test:
+            self.testing_exe()
+
+    # =========================================================================================== #
+    # ----- Supporting functions for main ------------------------------------------------------- #
+    # =========================================================================================== #
     def loop_loader_logic(self, epoch):
         """
         determins how best model is loaded as scheduler step based on scheduler type
@@ -169,32 +172,13 @@ class TrainNetwork:
         checkpoint = torch.load(dir)
         self.model.load_state_dict(checkpoint["state_dict"])
         
-        mAP_val = max(self.best_model["mAP_val"])
-        idx = self.best_model["mAP_val"].index(mAP_val)
-        epoch_val = self.best_model["epoch"][idx]
+        mAP_val = max(self.training_data["val_mAP"])
+        idx = self.training_data["best_mAP"].index(mAP_val)
+        epoch_val = self.training_data["best_epoch"][idx]
         
-        self.step_model["mAP_val"].append(mAP_val)
-        self.step_model["epoch"].append(epoch_val)
+        self.training_data["setp_mAP"].append(mAP_val)
+        self.training_data["step_epoch"].append(epoch_val)
 
-    def main(self):
-        """
-        details
-        """
-        # sending model to device
-        self.model.to(self.device)
-        
-        model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
-        params = sum([np.prod(p.size()) for p in model_parameters])
-        print(params)
-        
-        # executing training 
-        if self.train:
-            self.training_exe()
-
-        # executing testing
-        if self.test:
-            self.testing_exe()
-    
     def training_exe(self):
         iter_count = 0
         best_val = 0
@@ -223,30 +207,21 @@ class TrainNetwork:
                                 train_flag=self.train)
 
             # collecting data
-            self.train_loss['total'].append(sum(acc_train_loss['total']) / len(acc_train_loss['total']))
-            self.val_loss['total'].append(sum(acc_val_loss['total']) / len(acc_val_loss['total']))
-            self.val_eval['mAP'].append(mAP_val)
+            self.training_data['training_total'].append(sum(acc_train_loss['total']) / len(acc_train_loss['total']))
+            self.training_data['val_total'].append(sum(acc_val_loss['total']) / len(acc_val_loss['total']))
+            self.training_data['val_mAP'].append(mAP_val)
 
             # saving models
             prev_best = best_val
             best_val = model_saver(epoch, self.model, self.optimizer, best_val, mAP_val, self.out_dir)
             if best_val > prev_best:
-                self.best_model['mAP_val'].append(best_val)
-                self.best_model['epoch'].append(epoch+1)
+                self.training_data['best_mAP'].append(best_val)
+                self.training_data['best_epoch'].append(epoch+1)
             
             # finish epoch count
             delta = time.time() - epoch_begin
             epoch_duration = time_converter(delta)
             print("Epoch Duration: ", epoch_duration)
-
-        # recording losses  
-        self.loss_dict = {
-            'train_loss': self.train_loss,
-            'val_loss': self.val_loss,
-            'val_eval': self.val_eval,
-            'best_val': self.best_model,
-            'step_val': self.step_model
-        }
         
         # saving data in json
         loss_path = self.out_dir + "/loss_results.json"

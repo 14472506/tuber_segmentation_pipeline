@@ -15,7 +15,7 @@ import torch.distributed as dist
 from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
 import pycocotools.mask as mask_util
-from evaluation.custom_coco_eval import COCOeval
+from .custom_coco_eval import COCOeval
 
 # general imports
 import copy
@@ -26,7 +26,7 @@ import time
 import json
 
 # from packages
-from data.dataloader import convert_to_coco_api
+from .data_loader import convert_to_coco_api
 
 # ===========================
 # evaluate function and supporting functions
@@ -271,8 +271,8 @@ def convert_to_xywh(boxes):
     return torch.stack((xmin, ymin, xmax - xmin, ymax - ymin), dim=1)
 
 def merge(img_ids, eval_imgs):
-    all_img_ids = utils.all_gather(img_ids)
-    all_eval_imgs = utils.all_gather(eval_imgs)
+    all_img_ids = all_gather(img_ids)
+    all_eval_imgs = all_gather(eval_imgs)
 
     merged_img_ids = []
     for p in all_img_ids:

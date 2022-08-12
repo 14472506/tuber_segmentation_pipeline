@@ -1,81 +1,44 @@
 """
 Details
 """
-# imports
-from loop.train_net import TrainNetwork
-import config.configs as configs
+# import
+from training_implementation.config import ConfMaker
+from training_implementation.train import TrainNet
 
-# main function
-def main():
-
-    # Boolean flags
-    TRAIN = True
-    TEST = False
-    LOAD = False
-    BEST = True
+def exp1():
+    config = ConfMaker("jersey_dataset_v3", test=False)
     
-    # othere params
-    EPOCHS = 50
-    BATCH_SIZE = 2
-    WORKERS = 4
-    LR_SCHEDULER = "step"
-    SCH_PARAMS = [50, 0.1]
+    config.dataset_seletor()
 
-    # loops params
-    idx = 0
-    lr_list = [0.005]
+    config.train_test()
 
-    for i in lr_list: 
-        # setting up list of models
-        conf_list = [configs.conf_maker(TRAIN,
-                                        TEST,
-                                        "Mask_RCNN_R50_FPN",
-                                        "Saver_test_"+str(i),
-                                        BATCH_SIZE=BATCH_SIZE,
-                                        WORKERS=WORKERS,
-                                        LR=i, 
-                                        NUM_EPOCHS=EPOCHS,
-                                        LOAD_FLAG=LOAD, 
-                                        LOAD_BEST=BEST, 
-                                        OPTIMIZER = "SGD",
-                                        TRANSFORMS="combine_transforms",
-                                        LR_SCHEDULER=LR_SCHEDULER,
-                                        SCHEDULER_PARAMS=SCH_PARAMS)#,
-                     #configs.conf_maker(TRAIN,
-                     #                   TEST,
-                     #                   "Mask_RCNN_R18_FPN",
-                     #                   "R18_S50-01_"+str(i),
-                     #                   BATCH_SIZE=BATCH_SIZE,
-                     #                   WORKERS=WORKERS,
-                     #                   LR=i, 
-                     #                   NUM_EPOCHS=EPOCHS,
-                     #                   LOAD_FLAG=LOAD, 
-                     #                   LOAD_BEST=BEST, 
-                     #                   TRANSFORMS="combine_transforms",
-                     #                   LR_SCHEDULER=LR_SCHEDULER,
-                     #                   SCHEDULER_PARAMS=SCH_PARAMS),
-                     #configs.conf_maker(TRAIN,
-                     #                   TEST,
-                     #                   "Mask_RCNN_R34_FPN",
-                     #                   "R34_S50-01_"+str(i),
-                     #                   BATCH_SIZE=BATCH_SIZE,
-                     #                   WORKERS=WORKERS,
-                     #                   LR=i, 
-                     #                   NUM_EPOCHS=EPOCHS,
-                     #                   LOAD_FLAG=LOAD, 
-                     #                   LOAD_BEST=BEST, 
-                     #                   TRANSFORMS="combine_transforms",
-                     #                   LR_SCHEDULER=LR_SCHEDULER,
-                     #                   SCHEDULER_PARAMS=SCH_PARAMS)
-                    ]
+    config.dataloader_config(transforms = "combined",
+                          batch_size = 2,
+                          workers = 4, 
+                          shuffle = True)
 
-        # loop to train models through experiment
-        for conf in conf_list:
-            # calling main    
-            TrainNetwork(conf)
-        
-        idx += 1
+    config.model_config(model = "Mask_RCNN_R50_FPN",
+                      num_classes = 2,
+                      min_max = [800, 1333])
 
-# execution
-if __name__ == "__main__":
-    main()
+    config.optimizer_scheduler_config(optimizer = "SGD",
+                                     lr = 0.005, 
+                                     momentum = 0.9,
+                                     decay = 0.0005,
+                                     scheduler = "step",
+                                     scheduler_params = [50, 0.1])
+
+    config.loop_config(epochs = 50, print_freque = 10)
+
+    config.save_and_load_config(output_dir = "exp1",
+                                load_model = False,
+                                best_model = True)
+    dict = config.get_config()
+
+    return dict
+
+
+# train model
+conf_dict = exp1()
+TrainNet(conf_dict)
+

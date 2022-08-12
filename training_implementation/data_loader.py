@@ -14,7 +14,6 @@ Edited by:  Bradley Hurst
 # torch imports
 import json
 
-from sklearn.manifold import LocallyLinearEmbedding
 import torch
 import torchvision.transforms as T
 import torch.utils.data as data

@@ -23,12 +23,11 @@ import random
 import time
 
 # package imports
-from models import model_selector
-from transforms import transform_selector
-from utils import make_dir
-from coco_evaluation import evaluate
-import config.configs as configs
-from data_loader import PipelineDataLoader
+from .models import model_selector
+from .transforms import transform_selector
+from .utils import make_dir
+from .coco_evaluation import evaluate
+from .data_loader import PipelineDataLoader
 
 # =================================================================================================
 # train classes
@@ -53,8 +52,8 @@ class TrainNet():
         self.test = False
         self.num_epochs = configuration_dict['num_epochs']
         self.print_freq = configuration_dict['print_freq']
-        self.plot_title = configuration_dict['plot_title']
-        self.test_path = configuration_dict['im_test_path']
+        #self.plot_title = configuration_dict['plot_title']
+        #self.test_path = configuration_dict['im_test_path']
         self.scheduler_params = configuration_dict['scheduler_params'] 
         
         # these need sorting at some point into areas
@@ -77,11 +76,9 @@ class TrainNet():
 
         # initializing method attributes
         self.model = model_selector(self.model_name, self.num_classes, 
-                                    self.max_min) 
+                                    self.max_min)  
         self.params = [p for p in self.model.parameters() if p.requires_grad]
-        self.optimizer = self.optimizer_selector(self.optimizer_name,
-                                   self.params,
-                                   self.optimzier_parameters)
+        self.optimizer = self.optimizer_selector()
         
         # calling methods  
         # condifuring transforms
@@ -116,7 +113,7 @@ class TrainNet():
         self.training_data = {
             "training_loss": [],
             "validation_loss": [],
-            "Validation_mAP": [],
+            "validation_mAP": [],
             "best_model": [],
             "best_epoch": [],
             "model_params": None
@@ -127,8 +124,7 @@ class TrainNet():
     # defining scheduling assistant
     def schedule_assigner(self):
         if self.scheduler_name != "":
-            self.scheduler = self.lr_scheduler_selector(self.scheduler_name, self.optimizer,
-                                                    self.scheduler_params)
+            self.scheduler = self.lr_scheduler_selector()
         else:
             self.scheduler = None
 
@@ -142,11 +138,10 @@ class TrainNet():
     # defining data loader
     def loader_assigner(self, conf_dict):
         data_loader = PipelineDataLoader(conf_dict)
-        tr_load, v_load, te_load = data_loader.manager()
+        tr_load, v_load, _ = data_loader.manager()
         self.train_loader = tr_load
         self.val_loader = v_load
-        self.test_loader = te_load
-    
+
     # defining optimizer loader
     def optimizer_load(self):
         """
@@ -181,11 +176,12 @@ class TrainNet():
         # record parameters in model being trained
         model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
         params = sum([np.prod(p.size()) for p in model_parameters])
-        self.training_data["model_params"] = params
+        self.training_data["model_params"] = int(params)
+        
 
         # init best validation and iteration for loop
         iter_count = 0
-        best_val = 100
+        best_val = 0
 
         # training loop
         for epoch in range(self.start_epoch, self.num_epochs):
@@ -209,11 +205,24 @@ class TrainNet():
             train_loss = sum(train_losses)/len(train_losses)
             val_loss = sum(val_losses)/len(val_losses)
 
+            # getting map
+            #torch.cuda.empty_cache()
+            #mAP_val = evaluate(self.model, self.val_loader, self.device, self.out_dir,
+            #                   train_flag=self.train)
+            #mem_all = torch.cuda.memory_allocated(self.device) / 1024**3 
+            #mem_res = torch.cuda.memory_reserved(self.device) / 1024**3 
+            #mem = mem_res + mem_all
+            #mem = round(mem, 2)
+            #print("[mAP result][memory use: %sGB] mAP: %s" %(mem, mAP_val))
+
+            #self.mAP_evaluation()
+                    
             self.training_data["training_loss"].append(train_loss)
-            self.training_data["val_loss"].append(val_loss)
+            self.training_data["validation_loss"].append(val_loss)
+            #self.training_data["validation_mAP"].append(mAP_val)
 
             # saving models
-            self.model_saver(self, epoch, best_val, val_loss, self.out_dir)
+            best_val = self.model_saver(epoch, best_val, val_loss, self.out_dir)
             
             # updating best val
             if best_val > val_loss:
@@ -225,6 +234,18 @@ class TrainNet():
             delta = epoch_end - epoch_begin
             epoch_duration = self.time_converter(delta)
             print("Epoch Duration: ", epoch_duration)
+        
+        training_data = self.out_dir + "/training_data.json"
+        with open(training_data, 'w') as f:
+            json.dump(self.training_data, f)
+
+        loss_path = self.out_dir + "/loss_results.json"
+        with open(loss_path, "w") as f:
+            json.dump(self.loss_dict, f)
+
+    #############################################
+    # Train one epoch
+    #############################################
 
     # supporting methods to main
     # train one epoch
@@ -234,6 +255,7 @@ class TrainNet():
         """
         # set/ensure model output is configured for trainingtrain_loader, model, device, optimizer,
         self.model.train()
+        torch.cuda.empty_cache()
 
         # loss_collection init
         loss = []
@@ -260,9 +282,15 @@ class TrainNet():
             losses.backward()
             self.optimizer.step()
 
+            # get GPU memory usage
+            mem_all = torch.cuda.memory_allocated(self.device) / 1024**3 
+            mem_res = torch.cuda.memory_reserved(self.device) / 1024**3 
+            mem = mem_res + mem_all
+            mem = round(mem, 2)
+
             # printing results 
-            if iter_count % print_freq == 0:
-                print("[epoch: %s][iter: %s] total_loss: %s" %(epoch ,iter_count, losses.item()))
+            if iter_count % self.print_freq == 0:
+                print("[epoch: %s][iter: %s][memory use: %sGB] total_loss: %s" %(epoch ,iter_count, mem, losses.item()))
             iter_count += 1    
 
         # return losses
@@ -291,12 +319,12 @@ class TrainNet():
         checkpoint = torch.load(dir)
         self.model.load_state_dict(checkpoint["state_dict"])
         
-        mAP_val = max(self.best_model["mAP_val"])
-        idx = self.best_model["mAP_val"].index(mAP_val)
-        epoch_val = self.best_model["epoch"][idx]
+        best_val = min(self.training_data["best_model"])
+        idx = self.training_data["best_model"].index(best_val)
+        epoch_val = self.training_data["best_epoch"][idx]
         
-        self.step_model["mAP_val"].append(mAP_val)
-        self.step_model["epoch"].append(epoch_val)
+        #self.step_model["best_model"].append(best_model)
+        #self.step_model["best_epoch"].append(best_epoch)
 
     # optimizer selector function
     def optimizer_selector(self):
@@ -306,13 +334,13 @@ class TrainNet():
         # for SGD optimizer
         if self.optimizer_name == "SGD":
             optimizer = torch.optim.SGD(self.params, 
-                                        lr = self.optimizer_params['lr'],
-                                        momentum = self.optimizer_params['momentum'],
-                                        weight_decay = self.optimizer_params['weight_decay'])
+                                        lr = self.optimzier_parameters['lr'],
+                                        momentum = self.optimzier_parameters['momentum'],
+                                        weight_decay = self.optimzier_parameters['weight_decay'])
 
         # for ADAM optimizer
         if self.optimizer_name == "Adam":
-            optimizer = torch.optim.Adam(self.params, lr = self.optimizer_params['lr'])
+            optimizer = torch.optim.Adam(self.params, lr = self.optimzier_parameters['lr'])
 
         # return optimizer
         return optimizer
@@ -337,6 +365,9 @@ class TrainNet():
         # returning scheduler
         return(lr_scheduler)
 
+    #############################################
+    # Validate one epoch
+    #############################################
     # validate one epoch
     def validate_one_epoch(self):
         """
@@ -350,6 +381,7 @@ class TrainNet():
 
         # disables gradient calculation
         with torch.no_grad():
+            torch.cuda.empty_cache()
 
             # leaving this here for future reference for time being, all bn layers are frozen
             # therefor there should be no need to switch to eval
@@ -382,8 +414,16 @@ class TrainNet():
                 # recording loss data
                 loss.append(losses.item())
 
-        return(loss)
+        # get GPU memory usage
+        mem_all = torch.cuda.memory_allocated(self.device) / 1024**3 
+        mem_res = torch.cuda.memory_reserved(self.device) / 1024**3 
+        mem = mem_res + mem_all
+        mem = round(mem, 2)
 
+        print("[validation_loss][memory use: %sGB] total_loss: %s" %(mem, sum(loss)/len(loss)))
+
+        return(loss)
+        
     def model_saver(self, epoch, best_result, mAP, path):
         """
         Details
@@ -393,7 +433,7 @@ class TrainNet():
 
         # making save dictionary for model.pth
         checkpoint = {
-            "epoch": epoch + 1,
+            "epoch": epoch,
             "state_dict": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
         }
@@ -402,12 +442,12 @@ class TrainNet():
         last_model_path = path + "/last_model.pth"
         torch.save(checkpoint, last_model_path)
 
-        if loss < best_result:
-            #best_result = mAP
+        if mAP > best_result:
+            best_result = mAP
             best_model_path = path + "/best_model.pth"
             torch.save(checkpoint, best_model_path)
 
-        #return(best_result)
+        return(best_result)
 
     def time_converter(self, seconds):
         """
@@ -419,3 +459,152 @@ class TrainNet():
         seconds %= 60
 
         return("%02d:%02d:%02d" %(hours, min, seconds))
+
+    #############################################
+    # mAP evaluation
+    #############################################
+    def mAP_evaluation(self):
+        """
+        Details
+        """
+        prediction_data = {}
+        count = 0
+        # setting model to eval 
+        self.model.eval()    
+        for images, targets in self.val_loader:
+
+            images = list(image.to(self.device) for image in images)
+            targets = [{k: v.to("cpu") for k, v in t.items()} for t in targets]
+                
+            with torch.no_grad():
+                torch.cuda.empty_cache()
+                pred = self.model(images)
+
+            pred = (pred[0]["masks"]).squeeze().detach().cpu().numpy()*1
+            gt = (targets[0]["masks"]).detach().cpu().numpy()
+
+            data = {
+                "prediction": pred,
+                "ground_truth": gt
+            }
+            prediction_data[count] = data
+
+            print(count)
+
+            count += 1
+
+        #config_save = self.out_dir + "pred_dev.json"
+        #with open(config_save, 'w') as f:
+        #    json.dump(prediction_data, f)
+
+        mAP_eval(prediction_data)
+
+class mAP_eval():
+
+    def __init__(self, prediction_data):
+        """
+        detials
+        """
+        self.prediction_data = prediction_data
+        self.threshold = 0.05
+
+        self.main()
+
+    def main(self):
+        """
+        detials
+        """
+        for key, value in self.prediction_data.items():
+
+            pred_masks = value["prediction"]
+            targ_masks = value["ground_truth"]
+
+            self.single_image_results(pred_masks, targ_masks)
+
+    def single_image_results(self, pred_masks, targ_masks):
+        """
+        detials
+        """
+        all_ious = []
+        iou_per_targ = []
+        for t in targ_masks:
+            t_ious = []
+            for p in pred_masks:
+                
+                # getting overlap
+                p = np.ceil(p)
+                overlap = np.count_nonzero(np.logical_and( t==1,  p==1 ))
+
+                # skipping if no overlap
+                if overlap == 0:
+                    continue
+
+                p_area = np.count_nonzero(p == 1)
+                t_area = np.count_nonzero(t == 1)
+
+                iou = overlap/(p_area+t_area-overlap)
+
+                if iou > self.threshold:
+                    t_ious.append(iou)
+                    all_ious.append(iou)
+
+            iou_per_targ.append(t_ious)
+        
+        tp = len(all_ious)
+        fp = pred_masks.shape[0] - tp
+        fn = targ_masks.shape[0] - len(iou_per_targ)
+
+        print(tp, fp, fn) 
+
+
+
+
+
+                
+
+            
+
+            
+    def get_AP(self, pred, targs, match_dict, threshold):
+        """
+        detials
+        """
+        # prediction and target masks
+        pred_masks = (pred[0]['masks']>0.5).squeeze().detach().cpu().numpy()*1
+        targ_masks = targs[0]['masks'].detach().cpu().numpy()
+
+        iou_list = []
+        mask_idx = []
+        pred_idx = []
+
+        for key, val in match_dict.items():
+            t_mask = targ_masks[key]
+            for inst in val:
+                p_mask = pred_masks[inst]
+                p_mask = np.ceil(p_mask)
+
+                iou = self.compute_iou(p_mask, t_mask)
+                
+                if iou > threshold:
+                    iou_list.append(iou)
+                    mask_idx.append(key)
+                    pred_idx.append(inst)
+        
+        tp = len(iou_list)
+        fp = pred_masks.shape[0] - tp
+        fn = targ_masks.shape[0] - len([*set(mask_idx)])
+
+        try:
+            precision = tp/(tp + fp)
+        except ZeroDivisionError:
+            precision = 0.0
+        try:
+            recall = tp/(tp + fn)
+        except ZeroDivisionError:
+            recall = 0.0
+
+        print(precision, recall)
+
+
+    
+

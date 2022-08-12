@@ -224,12 +224,9 @@ class TrainNetwork:
             print("Epoch Duration: ", epoch_duration)
         
         # saving data in json
-        loss_path = self.out_dir + "/loss_results.json"
-        with open(loss_path, "w") as f:
-            json.dump(self.loss_dict, f)
-
-        # plotting data
-        plot_lr_loss(self.loss_dict, self.plot_title, self.out_dir)
+        save_file = self.out_dir + "/training_data.json"
+        with open(save_file, "w") as f:
+            json.dump(self.training_data, f)
 
     def testing_exe(self):
         # carrying out evaluations

@@ -157,7 +157,7 @@ def validate_one_epoch(validation_loader, model, device):
         mem = mem_res + mem_all
         mem = round(mem, 2)
 
-        print("[validation_loss][memory use: %sGB] total_loss: %s" %(mem, sum(losses)/len(losses)))
+        print("[validation_loss][memory use: %sGB] total_loss: %s" %(mem, sum(loss_col['total'])/len(loss_col['total'])))
         
     return(loss_col)
 

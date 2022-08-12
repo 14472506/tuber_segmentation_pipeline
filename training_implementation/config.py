@@ -10,19 +10,17 @@ class ConfMaker():
     """
 
     def __init__(self,
-                 config_name,
                  dataset_name,
-                 Train = True,
-                 Test = True,
+                 train = True,
+                 test = True,
                  ):
         """
         Detials
         """
         # object init_params
-        self.conf_name = config_name
         self.dataset_name = dataset_name
-        self.train = Train
-        self.test = Test
+        self.train = train
+        self.test = test
         
         # object dict
         self.dict = {}
@@ -40,11 +38,11 @@ class ConfMaker():
 
         # adding dataset detials to dict
         self.dict['train_dir'] = root + train
-        self.dict['train_json'] = root + train + json
-        self.dict['validate_dir'] = root + val
-        self.dict['validate_json'] = root + val + json
+        self.dict['train_json'] = root + train + "/" + train + json
+        self.dict['val_dir'] = root + val
+        self.dict['val_json'] = root + val + "/" + val + json
         self.dict['test_dir'] = root + test
-        self.dict['test_json'] = root + test + json
+        self.dict['test_json'] = root + test + "/" + test + json
     
     def train_test(self):
         """
@@ -55,7 +53,7 @@ class ConfMaker():
     
     def dataloader_config(self, 
                           transforms = "None",
-                          batch_size = 2,
+                          batch_size = 1,
                           workers = 4, 
                           shuffle = True):
         """
@@ -94,11 +92,12 @@ class ConfMaker():
         self.dict['optimizer'] = optimizer
         if optimizer == "SGD":
             self.dict['optimizer_params'] = {'lr': lr,
-                                               'momentum': momentum,
-                                               'weight_decay': decay
-                                              }
+                                             'momentum': momentum,
+                                             'weight_decay': decay
+                                            }
         if optimizer == "Adam":
-            self.dict['optimizer_params'] = {'lr': lr}
+            self.dict['optimizer_params'] = {'lr': lr
+                                            }
 
         # lr_scheduler
         self.dict['lr_scheduler'] = scheduler
@@ -115,8 +114,7 @@ class ConfMaker():
     def save_and_load_config(self,
                              output_dir = "test_run",
                              load_model = False,
-                             best_model = True,
-                             ):
+                             best_model = True):
         """
         Details
         """
@@ -144,7 +142,7 @@ class ConfMaker():
         self.optimizer_scheduler_config()
         self.loop_config()
         self.save_and_load_config()
-        dict = self.get_config
+        dict = self.get_config()
         return(dict)
 
 

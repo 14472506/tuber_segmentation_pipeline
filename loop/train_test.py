@@ -67,7 +67,7 @@ class TrainNetwork:
             'train_mask': [],
             'train_objectness': [],
             'train_rpn_box_reg': [],
-            'val_total:': [],
+            'val_total': [],
             'val_classifier': [],
             'val_box_reg': [],
             'val_mask': [],

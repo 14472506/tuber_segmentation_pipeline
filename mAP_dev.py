@@ -203,10 +203,10 @@ if __name__ == "__main__":
 
         count = 0
 
-        for j in range(75):
+        for j in range(100):
 
             if count == 0:
-                p.append(d)
+                p.append(a)
             else:
                 p.append(b)
         

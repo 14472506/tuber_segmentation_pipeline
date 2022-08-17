@@ -16,8 +16,9 @@ def main():
     
     # othere params
     EPOCHS = 2
-    BATCH_SIZE = 2
-    WORKERS = 4
+    BATCH_SIZE = 1
+    WORKERS = 2
+    MIN_MAX=[200, 333]
     LR_SCHEDULER = "step"
     SCH_PARAMS = [50, 0.1]
 
@@ -36,8 +37,9 @@ def main():
                                         LR=i, 
                                         NUM_EPOCHS=EPOCHS,
                                         LOAD_FLAG=LOAD, 
-                                        LOAD_BEST=BEST, 
-                                        OPTIMIZER = "SGD",
+                                        LOAD_BEST=BEST,
+                                        MIN_MAX=MIN_MAX, 
+                                        OPTIMIZER = "Adam",
                                         TRANSFORMS="combine_transforms",
                                         LR_SCHEDULER=LR_SCHEDULER,
                                         SCHEDULER_PARAMS=SCH_PARAMS),
@@ -50,7 +52,9 @@ def main():
                                         LR=i, 
                                         NUM_EPOCHS=EPOCHS,
                                         LOAD_FLAG=LOAD, 
-                                        LOAD_BEST=BEST, 
+                                        LOAD_BEST=BEST,
+                                        MIN_MAX=MIN_MAX,
+                                        OPTIMIZER = "Adam", 
                                         TRANSFORMS="combine_transforms",
                                         LR_SCHEDULER=LR_SCHEDULER,
                                         SCHEDULER_PARAMS=SCH_PARAMS),
@@ -64,6 +68,8 @@ def main():
                                         NUM_EPOCHS=EPOCHS,
                                         LOAD_FLAG=LOAD, 
                                         LOAD_BEST=BEST, 
+                                        MIN_MAX=MIN_MAX,
+                                        OPTIMIZER = "Adam",
                                         TRANSFORMS="combine_transforms",
                                         LR_SCHEDULER=LR_SCHEDULER,
                                         SCHEDULER_PARAMS=SCH_PARAMS)

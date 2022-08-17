@@ -1,152 +1,154 @@
-"""
-Detaisl
-"""
-# imports
-import numpy as np
+import numpy as np 
 
-# class
+###################################################################################################
+# classes                                                                            
+###################################################################################################
+
 class mAP_eval():
     """
-    Details
+    details
     """
-    def init(self, predictions_data):
+    def __init__(self, ground_truth_data, predictions_data):
         """
-        Details
+        detials
         """
+        self.ground_truth_data = ground_truth_data
         self.predictions_data = predictions_data
-        self.threshold_lower = 5
-        self.threshold_upper = 95
-        self.all_mAPs = []
-        self.mAPs = []
-
+        self.confidences = []
+        self.ious = []
+        self.correct = []
+        
         self.main()
+
 
     def main(self):
         """
-        detials
+        Detials
         """
-        # add loop for iterating over iou thresh.
-        for i in range(self.threshold_lower, self.threshold_upper, 5):
+        #get overlap matches
+        gt_dict ,matches = self.compute_prediction_matches()
 
-            # initialising list for collecting true postatibes and treu and false negatives
-            tps = []
-            fns = []
-            fps = []
-
-            # initialising list for precision and recall
-            precisions = []
-            recalls = []
-
-            # getting threshold value
-            thresh = i/100
-
-            # looping through 
-            for key, value in self.predictions_data.items():
-                
-                # getting masks
-                pred_masks = value["prediction"]
-                targ_masks = value["ground_truth"]
-
-                # calculating true posatives and false posatives and negatives from image
-                tp, fp, fn = self.single_image_results(pred_masks, targ_masks, thresh)
-
-                # collecting true posativesand false postatives and negatives
-                tps.append(tp)
-                fns.append(fn)
-                fps.append(fp)
-
-                # calculating precision and recall
-                prec, rec = self.precision_recall(tps, fps, fns)
-
-                # collecting precision and recall 
-                precisions.append(prec)
-                recalls.append(rec)
-
-            # get mAP val for precision and recall
-            mAP_val = self.get_mAP(precisions, recalls)
-
-            self.mAPs.append(mAP_val)
+        # process matches
+        self.process_matches_data(gt_dict, matches, 0.95)
         
-        self.mAP = sum(self.mAPs)/len(self.mAPs)
-        
-    def get_mAP(self, precisions, recalls):
+        self.confidences
+        self.ious
+        self.correct
+        prec_list = [0]*len(self.correct)
+        rec_list = [0]*len(self.correct)
+        results_table = np.array([self.confidences, self.correct, prec_list, rec_list])
+        results_table = np.transpose(results_table)
+        results_table = results_table[results_table[:, 0].argsort(kind='mergesort')[::-1]]
+
+        precision, recall = self.compute_precision_recall(results_table, gt_dict)
+
+        mAP = self.compute_mAP(precision, recall)
+        print(mAP)
+
+
+    def compute_prediction_matches(self):
         """
-        detials
+        Detials
         """
-        
-        # convert to np array
-        precisions = np.array(precisions)
-        recalls = np.array(recalls)
-        
-        # init list for collecting precision at recall
-        prec_at_rec = []
+        # matches dict  structure = {gt_1: [p_1, overlap_1, ... , p_n, overlap_n],
+        #                            ... ,
+        #                            gt_l: [[p_1, overlap_1], ... , [p_n, overlap_n]]}
+        matches = {}
+        gt_dict = {}
+        count = 0
+        gt = self.ground_truth_data
+        pred = self.predictions_data
+        for i in range(len(gt)):
+            for j in range(len(gt[i])):
+                gt_dict[count] = gt[i][j]
+                matches[count] = []
+                for k in range(len(pred[i])):
+                    overlap = np.count_nonzero(np.logical_and(gt[i][j]==1, pred[i][k]>0))
+                    if overlap == 0:
+                        continue
+                    matches[count].append([pred[i][k], overlap])
+                print(count)
+                count += 1
+        return(gt_dict, matches)
 
-        # looping ovar all precision values
-        for recall_level in np.linspace(0.0, 1.0, 11):
+
+    def process_matches_data(self, gt_dict, matches, threshold):
+        """
+        Details
+        """
+        for key, val in matches.items():
+            
+            t_mask = gt_dict[key]
+            ious = []
+            confidences = []
+
+            for i in val:
+                p_mask = i[0]
+                overlap = i[1]
+                iou = self.compute_iou(p_mask, t_mask, overlap)
+                if iou > threshold:
+                    conf_val = np.min(p_mask[np.nonzero(p_mask)])
+                    ious.append(iou)
+                    confidences.append(conf_val)
+            
+            correct = [0]*len(ious)
+            max_iou = max(ious)
+            idx = ious.index(max_iou)
+            correct[idx] = 1
+
+            self.confidences.extend(confidences)
+            self.ious.extend(ious)
+            self.correct.extend(correct)
+
+
+    def compute_iou(self, pmask, tmask, overlap):
+        """
+        Details
+        """
+        p_area = np.count_nonzero(pmask>0)
+        t_area = np.count_nonzero(tmask==1)
+        iou = overlap/(p_area+t_area-overlap)
+        return(iou)
+    
+
+    def compute_precision_recall(self, results_table, gt_dict):
+        """
+        Details
+        """
+        gt_count = len(gt_dict)
+        tp_count = 0
+        all_count = 0
+
+        prec = []
+        rec = []
+
+        for row in results_table:
+            tp_count += row[1]
+            all_count += 1            
+            prec.append(tp_count/all_count)
+            rec.append(tp_count/gt_count)
+                   
+        return(prec, rec)
+
+        
+    def compute_mAP(self, prec, rec):
+        """
+        Details
+        """
+        prec_inter_col = {}
+
+        prec_inter = []
+        for i in range(len(prec)):
             try:
-                idx = np.argwhere(recalls >= recall_level).flatten()
-                prec = max(precisions[idx])
-            except ValueError:
-                prec = 0.0
-            prec_at_rec.append(prec)
-        
-        # calcultating mAP
-        mAP_val = np.mean(prec_at_rec)
-        
-        return(mAP_val)
+                prec_inter_col[rec[i]].append(prec[i])
+            except KeyError:
+                prec_inter_col[rec[i]] = [prec[i]]
 
-    def single_image_results(self, pred_masks, targ_masks, thresh):
-        """
-        detials
-        """
-        all_ious = []
-        iou_per_targ = []
-        for t in targ_masks:
-            t_ious = []
-            for p in pred_masks:
-                
-                # getting overlap
-                p = np.ceil(p)
-                overlap = np.count_nonzero(np.logical_and( t==1,  p==1 ))
+        sm = 0
+        rn = 0
+        for key, val in prec_inter_col.items():
+            sm += (key - rn)*max(val)
+            print
+            rn = key
 
-                # skipping if no overlap
-                if overlap == 0:
-                    continue
-
-                p_area = np.count_nonzero(p == 1)
-                t_area = np.count_nonzero(t == 1)
-
-                iou = overlap/(p_area+t_area-overlap)
-
-                if iou > thresh:
-                    t_ious.append(iou)
-                    all_ious.append(iou)
-
-            iou_per_targ.append(t_ious)
-        
-        tp = len(all_ious)
-        fp = pred_masks.shape[0] - tp
-        fn = targ_masks.shape[0] - len(iou_per_targ)
-
-        print(tp, fp, fn)
-
-    def precision_recall(self, tps, fps, fns):
-        """
-        detials
-        """
-        try:
-            precision = sum(tps)/(sum(tps) + sum(fps))
-        except ZeroDivisionError:
-            precision = 0.0
-        try:
-            recall = sum(tps)/(sum(tps) + sum(fns))
-        except ZeroDivisionError:
-            recall = 0.0
-        
-        return precision, recall
-
-    def mAP_call(self):
-        """
-        detials
-        """
-        return self.mAP
+        return(sm)

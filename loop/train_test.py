@@ -137,8 +137,8 @@ class TrainNetwork:
         
         model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
         params = sum([np.prod(p.size()) for p in model_parameters])
-        self.training_data['parameters'] = params
-        
+        self.training_data['parameters'] = int(params)
+
         # executing training 
         if self.train:
             self.training_exe()
@@ -180,7 +180,7 @@ class TrainNetwork:
 
     def training_exe(self):
         iter_count = 0
-        best_val = 0
+        best_val = 100 # changed for loss
 
         # loop through the epochs
         for epoch in range(self.start_epoch, self.num_epochs):
@@ -236,14 +236,14 @@ class TrainNetwork:
         #centroid_evaluation(self.model, self.test_loader, self.device, self.out_dir)
 
         # loading json data
-        pr_json = self.out_dir + "/precision_recall_results.json"
-        cen_err_json = self.out_dir + "/centroid_error.json"
-        with open(pr_json) as pr_file:
-            pr_dict = json.load(pr_file)
-            pr_file.close()
-        with open(cen_err_json) as ce_file:
-            ce_dict = json.load(ce_file)
-            ce_file.close()
+        #pr_json = self.out_dir + "/precision_recall_results.json"
+        #cen_err_json = self.out_dir + "/centroid_error.json"
+        #with open(pr_json) as pr_file:
+        #    pr_dict = json.load(pr_file)
+        #    pr_file.close()
+        #with open(cen_err_json) as ce_file:
+        #    ce_dict = json.load(ce_file)
+        #    ce_file.close()
 
         # plotting data
         #plot_precision_recall(pr_dict['segm'], self.plot_title, self.out_dir)
@@ -255,7 +255,7 @@ class TrainNetwork:
         print(fps)
         
         # segmentation generation
-        segment_instance(self.device, self.test_path, ['__background__', 'jersey_royal'], self.model, 
-                         self.plot_title, self.out_dir)
-        centroid_instance(self.device, self.test_path, self.test_loader, self.model, self.plot_title,
-                         self.out_dir, thresh=0.95)
+        #segment_instance(self.device, self.test_path, ['__background__', 'jersey_royal'], self.model, 
+        #                 self.plot_title, self.out_dir)
+        #centroid_instance(self.device, self.test_path, self.test_loader, self.model, self.plot_title,
+        # 

@@ -13,7 +13,6 @@ Edited by:  Bradley Hurst
 # =================================================================================================
 # pytorch imports
 import json
-from sched import scheduler
 import torch 
 import torchvision.transforms as T
 
@@ -203,18 +202,21 @@ class TrainNetwork:
             acc_val_loss = validate_one_epoch(self.val_loader, self.model, self.device)#
 
             # validation eval
-            mAP_val = evaluate(self.model, self.val_loader, self.device, self.out_dir,
-                                train_flag=self.train)
+            #mAP_val = evaluate(self.model, self.val_loader, self.device, self.out_dir,
+            #                    train_flag=self.train)
 
             # collecting data
             self.training_data['train_total'].append(sum(acc_train_loss['total']) / len(acc_train_loss['total']))
             self.training_data['val_total'].append(sum(acc_val_loss['total']) / len(acc_val_loss['total']))
-            self.training_data['val_mAP'].append(mAP_val)
-
+            #self.training_data['val_mAP'].append(mAP_val)
+            val_total = sum(acc_val_loss['total'])/len(acc_val_loss['total'])
             # saving models
             prev_best = best_val
-            best_val = model_saver(epoch, self.model, self.optimizer, best_val, mAP_val, self.out_dir)
-            if best_val > prev_best:
+            best_val = model_saver(epoch, self.model, self.optimizer, best_val, val_total, self.out_dir) # modified model_saver
+            #if best_val > prev_best:
+            #    self.training_data['best_mAP'].append(best_val)
+            #    self.training_data['best_epoch'].append(epoch+1)
+            if best_val < prev_best:
                 self.training_data['best_mAP'].append(best_val)
                 self.training_data['best_epoch'].append(epoch+1)
             

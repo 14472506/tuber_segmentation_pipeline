@@ -103,7 +103,7 @@ def model_saver(epoch, model, optimizer, best_result, mAP, path):
     last_model_path = path + "/last_model.pth"
     torch.save(checkpoint, last_model_path)
 
-    if mAP > best_result:
+    if mAP < best_result:   # swapped for loss value: change this back
         best_result = mAP
         best_model_path = path + "/best_model.pth"
         torch.save(checkpoint, best_model_path)

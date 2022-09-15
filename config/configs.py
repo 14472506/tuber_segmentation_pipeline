@@ -16,7 +16,7 @@ def conf_maker(TRAIN,
                OPTIMIZER = "SGD",
                LR_SCHEDULER="",
                SCHEDULER_PARAMS=[],
-               TEST_IM_STR="data/data/jersey_royal_dataset/test/169.JPG"):
+               TEST_IM_STR="data/data/jersey_dataset_v3/test/169.JPG"):
     """
     conf_maker generates a dictionary that is passed through the training/testing process 
     """
@@ -24,12 +24,12 @@ def conf_maker(TRAIN,
     config_dict = {}
 
     # data set locations
-    config_dict['train_dir'] = "data/data/jersey_royal_dataset/train"
-    config_dict['train_json'] = "data/data/jersey_royal_dataset/train/train.json"
-    config_dict['validate_dir'] = "data/data/jersey_royal_dataset/val"
-    config_dict['validate_json'] = "data/data/jersey_royal_dataset/val/val.json"
-    config_dict['test_dir'] = "data/data/jersey_royal_dataset/test"
-    config_dict['test_json'] = "data/data/jersey_royal_dataset/test/test.json"
+    config_dict['train_dir'] = "data/data/jersey_dataset_v4/train"
+    config_dict['train_json'] = "data/data/jersey_dataset_v4/train/train.json"
+    config_dict['validate_dir'] = "data/data/jersey_dataset_v4/val"
+    config_dict['validate_json'] = "data/data/jersey_dataset_v4/val/val.json"
+    config_dict['test_dir'] = "data/data/jersey_dataset_v4/test"
+    config_dict['test_json'] = "data/data/jersey_dataset_v4/test/test.json"
 
     # Train and Test flags
     config_dict['TRAIN'] = TRAIN
@@ -56,6 +56,11 @@ def conf_maker(TRAIN,
                                            'weight_decay': 0.0005
                                           }
     if OPTIMIZER == "Adam":
+        config_dict['optimizer_params'] = {'lr': LR#,
+                                           #'momentum': 0.9,
+                                           #'weight_decay': 0.0005
+                                          }
+    if OPTIMIZER == "AdamW":
         config_dict['optimizer_params'] = {'lr': LR#,
                                            #'momentum': 0.9,
                                            #'weight_decay': 0.0005

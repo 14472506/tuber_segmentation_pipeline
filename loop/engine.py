@@ -76,10 +76,16 @@ def train_one_epoch(train_loader, model, device, optimizer, print_freq, iter_cou
         losses.backward()
         optimizer.step()
 
+        # get GPU memory usage
+        mem_all = torch.cuda.memory_allocated(device) / 1024**3 
+        mem_res = torch.cuda.memory_reserved(device) / 1024**3 
+        mem = mem_res + mem_all
+        mem = round(mem, 2)
+
         # printing results 
         if iter_count % print_freq == 0:
-            print("[epoch: %s][iter: %s] total_loss: %s" %(epoch ,iter_count, losses.item()))
-        iter_count += 1    
+            print("[epoch: %s][iter: %s][memory use: %sGB] total_loss: %s" %(epoch ,iter_count, mem, losses.item()))
+        iter_count += 1   
 
     # return losses
     return loss_col, iter_count
@@ -143,6 +149,15 @@ def validate_one_epoch(validation_loader, model, device):
             for i in loss_dict.values():
                 loss_col[idx_list[idx_count]].append(i.item())
                 idx_count += 1
+
+        
+        # get GPU memory usage
+        mem_all = torch.cuda.memory_allocated(device) / 1024**3 
+        mem_res = torch.cuda.memory_reserved(device) / 1024**3 
+        mem = mem_res + mem_all
+        mem = round(mem, 2)
+
+        print("[validation_loss][memory use: %sGB] total_loss: %s" %(mem, sum(loss_col['total'])/len(loss_col['total'])))
         
     return(loss_col)
 

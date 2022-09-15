@@ -58,11 +58,11 @@ def model_selector(model_title, num_classes, min_max):
         get_model = ResnetSelector(num_classes, min_max, 'resnext50_32x4d')
         model = get_model.return_model()
         
-    if model_title == "MasK_RCNN_MNET_SMALL":
+    if model_title == "Mask_RCNN_MNET_SMALL":
         get_model = MobilenetSelector(num_classes, min_max, 'mobilenetv3_small')
         model = get_model.return_model()
 
-    if model_title == "MasK_RCNN_MNET_LARGE":
+    if model_title == "Mask_RCNN_MNET_LARGE":
         get_model = MobilenetSelector(num_classes, min_max, 'mobilenetv3_large')
         model = get_model.return_model()
 

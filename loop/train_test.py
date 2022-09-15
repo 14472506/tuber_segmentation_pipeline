@@ -15,6 +15,7 @@ Edited by:  Bradley Hurst
 import json
 import torch 
 import torchvision.transforms as T
+import pickle as pkl
 
 # suporting library imports
 import numpy as np
@@ -30,6 +31,9 @@ from .utils import model_saver, make_dir, time_converter, set_seed, data_loader_
 from evaluation.coco_evaluation import evaluate
 import config.configs as configs
 from evaluation.plotter import plot_lr_loss#, plot_precision_recall, plot_f1_score, plot_cent_err
+
+from evaluation.mAP_eval import mAP_eval 
+
 # =================================================================================================
 # Train_net implementation
 # =================================================================================================
@@ -150,33 +154,44 @@ class TrainNetwork:
     # =========================================================================================== #
     # ----- Supporting functions for main ------------------------------------------------------- #
     # =========================================================================================== #
-    def loop_loader_logic(self, epoch):
+    def loop_loader_logic(self, epoch, best_val):
         """
         determins how best model is loaded as scheduler step based on scheduler type
         """
         if self.scheduler_title == "step":
             if epoch != 0:
                 if epoch % self.scheduler_params[0] == 0:
-                    self.loop_loader(epoch)
+                    best_val = self.loop_loader(epoch, best_val)
 
         if self.scheduler_title == "multi_step":
                 if epoch in self.scheduler_params[0]:
-                    self.loop_loader(epoch)
+                    best_val = self.loop_loader(epoch, best_val)
         
-    def loop_loader(self, epoch):
+        return(best_val)
+        
+    def loop_loader(self, epoch, best_val):
         """
         Detials
         """
+        # Load best model
         dir =  self.out_dir + "/best_model.pth"
         checkpoint = torch.load(dir)
         self.model.load_state_dict(checkpoint["state_dict"])
         
-        mAP_val = max(self.training_data["val_mAP"])
+        # save best model as best pre step model
+        last_model_path = self.out_dir + "/ps_best_model.pth"
+        torch.save(checkpoint, last_model_path)
+
+        # collecting best mAP and epoch for pre step
+        mAP_val = min(self.training_data["val_total"])           # !!!! Changed for loss
         idx = self.training_data["best_mAP"].index(mAP_val)
         epoch_val = self.training_data["best_epoch"][idx]
         
-        self.training_data["setp_mAP"].append(mAP_val)
+        self.training_data["step_mAP"].append(mAP_val)
         self.training_data["step_epoch"].append(epoch_val)
+
+        best_val = 100
+        return(best_val)
 
     def training_exe(self):
         iter_count = 0
@@ -196,7 +211,7 @@ class TrainNetwork:
                 self.scheduler.step()
 
                 # calling loop_loader logic
-                self.loop_loader_logic(epoch)
+                best_val = self.loop_loader_logic(epoch, best_val)
             
             # validating one epoch
             acc_val_loss = validate_one_epoch(self.val_loader, self.model, self.device)#
@@ -232,8 +247,39 @@ class TrainNetwork:
 
     def testing_exe(self):
         # carrying out evaluations
-        evaluate(self.model, self.test_loader, self.device, self.out_dir, test_flag=self.test)
+        mAP = evaluate(self.model, self.test_loader, self.device, self.out_dir, train_flag=self.test)
+        print(mAP)
         #centroid_evaluation(self.model, self.test_loader, self.device, self.out_dir)
+        
+        #pred_masks = []
+        #pred_boxes = []
+        #targ_masks = []
+        #targ_boxes = []
+        #
+        #self.model.to(self.device)
+        #self.model.eval()
+        #for images, targets in self.test_loader: 
+        #    # images to gpu
+        #    images = list(image.to(self.device) for image in images)
+        #    with torch.no_grad():
+        #        predictions = self.model(images)
+        #
+        #        tb = targets[0]["masks"].cpu().detach().numpy() 
+        #        targ_masks.append(tb)
+        #        tm = targets[0]["boxes"].cpu().detach().numpy()
+        #        targ_boxes.append(tm)
+        #
+        #        pb = predictions[0]["masks"].cpu().detach().numpy()
+        #        pred_masks.append(pb) 
+        #        pm = predictions[0]["boxes"].cpu().detach().numpy()
+        #        pred_boxes.append(pm)
+        #    
+        #mAP = mAP_eval(targ_masks, pred_masks, pred_boxes, targ_boxes)
+        #print(mAP.mAP_return())
+
+
+
+
 
         # loading json data
         #pr_json = self.out_dir + "/precision_recall_results.json"
@@ -251,8 +297,8 @@ class TrainNetwork:
         #plot_f1_score(pr_dict['segm'], self.plot_title, self.out_dir)
 
         # fps_value
-        fps = fps_evaluate(self.model, self.test_path, self.device)
-        print(fps)
+        #fps = fps_evaluate(self.model, self.test_path, self.device)
+        #print(fps)
         
         # segmentation generation
         #segment_instance(self.device, self.test_path, ['__background__', 'jersey_royal'], self.model, 

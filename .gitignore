@@ -2,7 +2,9 @@
 /data/data
 /outputs
 /dev_file
+/ignore_this
 
+*.zip
 *.pth
 ########## Python temp ##########
 

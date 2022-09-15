@@ -63,7 +63,8 @@ def evaluate(model, data_loader, device, save_path, train_flag=False, test_flag=
         model_time = time.time()
 
         # getting predictions from model and loading them to gpu
-        outputs = model(images)
+        with torch.no_grad():
+            outputs = model(images)
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
 
         # 

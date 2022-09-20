@@ -60,7 +60,7 @@ OPTIMIZER:
 SCHEDULER:
   NAME: StepLR
   PARAMS:
-    - 100
+    - 2
     - 0.1
 
 # loop config

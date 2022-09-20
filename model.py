@@ -10,6 +10,7 @@ from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.models.detection import MaskRCNN
 from torch import nn
+import torch
 
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 
@@ -28,12 +29,21 @@ class ModelSelector():
         self.model_name = self.cd["MODEL"]["MODEL_NAME"]
         self.backbone_name = self.cd["MODEL"]["BACKBONE_NAME"]
         self.b_type = self.backbone_name.split("_")[0]
+        self.trained = self.cd["MODEL"]["TRAINED"]["FLAG"]
+        self.ss_trained = self.cd["MODEL"]["TRAINED"]["SS_FLAG"]
 
         # get backbone
         self.backbone_selector()
 
         # get model
         self.get_model()
+
+        if self.ss_trained:
+            
+            checkpoint = torch.load(self.cd["MODEL"]["TRAINED"]["BACKBONE_ROOT"])
+            self.model.backbone.load_state_dict(checkpoint["state_dict"], strict=False)
+            print("loaded")
+
 
     def get_model(self):
         """

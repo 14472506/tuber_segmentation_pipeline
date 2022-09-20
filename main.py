@@ -12,7 +12,7 @@ import yaml
 # =============================================================================================== #
 def main():
     # defining list of experiments    
-    exp_list = ["dev.yaml"]
+    exp_list = ["config/temp.yaml"]
 
     # looping through experiments list calling loop_train
     for exp in exp_list:
@@ -26,7 +26,7 @@ def main():
                 print(exc)
     
         TrainLoop(config_dict = config_dict) 
-        EvalLoop(config_dict = config_dict)
+        #EvalLoop(config_dict = config_dict)
 
 # =============================================================================================== #
 # Execution

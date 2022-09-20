@@ -46,11 +46,15 @@ DATALOADER:
 MODEL:
   MODEL_NAME: Mask_RCNN
   BACKBONE_NAME: resnet_50
-  TRAINED: TRUE
+  TRAINED:
+    FLAG: TRUE
+    SS_FLAG: TRUE
+    BACKBONE_ROOT: backbone_weights/best_model.pth 
   TRAINABLE_LAYERS: 5
   NUM_CLASSES: 2
   MIN: 800
   MAX: 1333
+
 
 # optimizer and scheduler config
 OPTIMIZER:
@@ -66,7 +70,7 @@ SCHEDULER:
 # loop config
 LOOP:
   START_EPOCH: 0
-  END_EPOCH: 150
+  END_EPOCH: 10
 
 # reporting config
 REPORTING:

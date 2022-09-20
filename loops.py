@@ -153,24 +153,24 @@ class TrainLoop():
         Details
         """
         self.data_recording = {
-            'train_total': [],
-            'train_classifier': [],
-            'train_box_reg': [],
-            'train_mask': [],
-            'train_objectness': [],
-            'train_rpn_box_reg': [],
-            'val_total': [],
-            'val_classifier': [],
-            'val_box_reg': [],
-            'val_mask': [],
-            'val_objectness': [],
-            'val_rpn_box_reg': [],
-            'val_mAP': [],
-            'best_mAP': [],
-            'step_mAP': [],
-            'best_epoch': [],
-            'step_epoch': [],
-            'parameters': None
+            'train_total'       : [],
+            'train_classifier'  : [],
+            'train_box_reg'     : [],
+            'train_mask'        : [],
+            'train_objectness'  : [],
+            'train_rpn_box_reg' : [],
+            'val_total'         : [],
+            'val_classifier'    : [],
+            'val_box_reg'       : [],
+            'val_mask'          : [],
+            'val_objectness'    : [],
+            'val_rpn_box_reg'   : [],
+            'val_mAP'           : [],
+            'best_mAP'          : [],
+            'step_mAP'          : [],
+            'best_epoch'        : [],
+            'step_epoch'        : [],
+            'parameters'        : None
         }
     
 
@@ -194,25 +194,25 @@ class TrainLoop():
             epoch_val_loss = self.val_one_epoch(epoch)
 
             # save last model
-            model_saver(epoch, self.model, self.optimizer, self.exp_dir, "las_model.pth")
+            model_saver(epoch, self.model, self.optimizer, self.exp_dir, "last_model.pth")
 
             # save best model
             if best_model >= epoch_val_loss:
+                best_model = epoch_val_loss
                 model_saver(epoch, self.model, self.optimizer, self.exp_dir, "best_model.pth")
                 self.data_recording["best_mAP"].append(best_model)
                 self.data_recording["best_epoch"].append(epoch)
-                best_model = epoch_val_loss
+                
 
             # scheduler management
             if self.scheduler != None:    
                 # check logic
                 best_model = self.scheduler_step_logic(epoch, best_model)
-                print(best_model)
                 # scheduler step
                 self.scheduler.step()
             
         # saving data in json
-        save_file = self.out_dir + "/training_data.json"
+        save_file = self.exp_dir + "/training_data.json"
         with open(save_file, "w") as f:
             json.dump(self.data_recording, f)
 
@@ -223,11 +223,10 @@ class TrainLoop():
         """
         if self.cd["SCHEDULER"]["NAME"] == "StepLR":
             if epoch != 0:
-                if epoch % self.cd["OPTIMIZER"]["PARAMS"][0] == 0:
+                if epoch % self.cd["SCHEDULER"]["PARAMS"][0] == 0:
                     self.schedule_loader(epoch, best_val)
                     return 100
                 else:
-                    print("got here")
                     return best_val 
             return best_val
 
@@ -244,12 +243,12 @@ class TrainLoop():
         Detials
         """
         # load best model so far
-        model_dir = self.out_dir + "/best_model.pth"
+        model_dir = self.exp_dir + "/best_model.pth"
         checkpoint = torch.load(model_dir)
         self.model.load_state_dict(checkpoint["state_dict"])
 
         # save best model as best pre step model
-        last_model_path = self.out_dir + "/ps_best_model.pth"
+        last_model_path = self.exp_dir + "/ps_best_model.pth"
         torch.save(checkpoint, last_model_path)
 
         # best pre_step val results
@@ -282,12 +281,13 @@ class TrainLoop():
             images = list(image.to(self.device) for image in images)
             targets = [{k: v.to(self.device) for k, v in t.items()} for t in targets]
 
-            # setting param gradient to zero
-            self.optimizer.zero_grad()
-
             # forward + backward + optimizer
             loss_dict = self.model(images, targets)
             losses = sum(loss for loss in loss_dict.values())
+           
+            # setting param gradient to zero
+            self.optimizer.zero_grad()
+           
             losses.backward()
             self.optimizer.step()
 
@@ -300,7 +300,7 @@ class TrainLoop():
             rpnbr_acc += loss_dict["loss_rpn_box_reg"].item()
 
             # results printing
-            if iter_count % self.print_freq == self.print_freq-1:
+            if iter_count % self.print_freq == 0: #self.print_freq-1:
                 
                 # get GPU memory usage
                 mem_all = torch.cuda.memory_allocated(self.device) / 1024**3 

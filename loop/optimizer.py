@@ -18,6 +18,9 @@ def optimizer_selector(optimizer_title, model_params, optimizer_params):
     if optimizer_title == "Adam":
         optimizer = torch.optim.Adam(model_params, lr = optimizer_params['lr'])
 
+    if optimizer_title == "AdamW":
+        optimizer = torch.optim.AdamW(model_params, lr = optimizer_params['lr'])
+
     return optimizer
 
 def lr_scheduler_selector(scheduler_type, optimizer, scheduler_params):

@@ -5,6 +5,7 @@
 /arc
 /ignore_this
 
+*.zip
 *.pth
 ########## Python temp ##########
 

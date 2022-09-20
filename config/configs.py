@@ -24,12 +24,12 @@ def conf_maker(TRAIN,
     config_dict = {}
 
     # data set locations
-    config_dict['train_dir'] = "data/data/jersey_royal_dataset/train"
-    config_dict['train_json'] = "data/data/jersey_royal_dataset/train/train.json"
-    config_dict['validate_dir'] = "data/data/jersey_royal_dataset/val"
-    config_dict['validate_json'] = "data/data/jersey_royal_dataset/val/val.json"
-    config_dict['test_dir'] = "data/data/jersey_royal_dataset/test"
-    config_dict['test_json'] = "data/data/jersey_royal_dataset/test/test.json"
+    config_dict['train_dir'] = "data/jersey_dataset_v4/train"
+    config_dict['train_json'] = "data/jersey_dataset_v4/train/train.json"
+    config_dict['validate_dir'] = "data/jersey_dataset_v4/val"
+    config_dict['validate_json'] = "data/jersey_dataset_v4/val/val.json"
+    config_dict['test_dir'] = "data/jersey_dataset_v4/test"
+    config_dict['test_json'] = "data/jersey_dataset_v4/test/test.json"
 
     # Train and Test flags
     config_dict['TRAIN'] = TRAIN

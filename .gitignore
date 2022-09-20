@@ -1,7 +1,9 @@
 ########## Repo specific ##########
-/data/data
+/data
 /outputs
 /dev_file
+/arc
+/ignore_this
 
 *.pth
 ########## Python temp ##########

@@ -48,7 +48,7 @@ MODEL:
   BACKBONE_NAME: resnet_50
   TRAINED:
     FLAG: TRUE
-    SS_FLAG: TRUE
+    SS_FLAG: FALSE
     BACKBONE_ROOT: backbone_weights/best_model.pth 
   TRAINABLE_LAYERS: 5
   NUM_CLASSES: 2
@@ -64,7 +64,7 @@ OPTIMIZER:
 SCHEDULER:
   NAME: StepLR
   PARAMS:
-    - 2
+    - 20
     - 0.1
 
 # loop config

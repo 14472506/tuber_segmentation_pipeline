@@ -20,6 +20,7 @@ from model import ModelSelector
 from optimizer import OptimizerConf
 from coco_evaluation import evaluate
 from mAP_eval import mAP_eval
+from transforms import transform_selector
 
 # =============================================================================================== #
 # classes
@@ -45,14 +46,14 @@ class TrainLoop():
         self.exp_dir = "outputs/" + self.experiment_name
         make_dir(self.exp_dir)
 
-        # data location
-        self.train_root = self.cd["DATASET"]["TRAIN"]
-        self.val_root = self.cd["DATASET"]["VAL"]
-
         # setting seed
         self.set_seed()
 
         # loading datasets
+        self.train_root = self.cd["DATASET"]["TRAIN"]
+        self.train_trans = transform_selector(self.cd["DATASET"]["TRAIN_TRANSFORMS"])
+        self.val_root = self.cd["DATASET"]["VAL"]
+        self.train_trans = transform_selector(self.cd["DATASET"]["VAL_TRANSFORMS"])
         self.load_dataset()
 
         # get model and send it to device
@@ -137,7 +138,7 @@ class TrainLoop():
             
             # configuring val loader
             self.val_loader = torch.utils.data.DataLoader(
-                            train_data,
+                            val_data,
                             batch_size = self.cd['DATALOADER']['VAL']['BATCH_SIZE'],
                             shuffle = self.cd['DATALOADER']['VAL']['SHUFFLE'],
                             num_workers = self.cd['DATALOADER']['VAL']['WORKERS'],
@@ -180,7 +181,7 @@ class TrainLoop():
         """
         # collecting model parameters
         model_params = filter(lambda p: p.requires_grad, self.model.parameters())
-        #self.data_recording['parameters'] = self.params
+        self.data_recording['parameters'] = int(sum([np.prod(p.size()) for p in model_params]))
 
         # config best_model selector
         best_model = 100
@@ -206,10 +207,13 @@ class TrainLoop():
 
             # scheduler management
             if self.scheduler != None:    
+                
+                # scheduler step
+                self.scheduler.step() 
+
                 # check logic
                 best_model = self.scheduler_step_logic(epoch, best_model)
-                # scheduler step
-                self.scheduler.step()
+
             
         # saving data in json
         save_file = self.exp_dir + "/training_data.json"
@@ -466,5 +470,5 @@ class EvalLoop():
         """
         Detials
         """
-        mAP = evaluate(self.model, self.test_loader, self.device, self.exp_dir, train_flag=True)
+        mAP = evaluate(self.model, self.test_loader, self.device, self.exp_dir, train_flag=False)
         print(mAP)

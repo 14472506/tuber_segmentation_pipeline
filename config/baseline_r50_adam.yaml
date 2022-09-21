@@ -10,7 +10,7 @@ DATASET:
   # Training params
   TRAIN: ./data/jersey_dataset_v4/train
   TRAIN_JSON: /train.json
-  TRAIN_TRANSFORMS: NULL
+  TRAIN_TRANSFORMS: NULL #"combine_transforms"
 
   # Validation params
   VAL: ./data/jersey_dataset_v4/val

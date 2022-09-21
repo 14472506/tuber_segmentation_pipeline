@@ -118,7 +118,7 @@ class COCOLoader(data.Dataset):
 
         # applying transforms if applicable
         if self.transforms != None:
-            img, transform = self.transforms(img, transform)
+            img, target = self.transforms(img, transform)
 
         return img, target
     

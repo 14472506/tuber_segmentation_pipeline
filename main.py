@@ -12,7 +12,7 @@ import yaml
 # =============================================================================================== #
 def main():
     # defining list of experiments    
-    exp_list = ["config/temp.yaml"]
+    exp_list = ["config/baseline_r50_adam.yaml"]
 
     # looping through experiments list calling loop_train
     for exp in exp_list:
@@ -25,8 +25,8 @@ def main():
             except yaml.YAMLError as exc:
                 print(exc)
     
-        TrainLoop(config_dict = config_dict) 
-        #EvalLoop(config_dict = config_dict)
+        #TrainLoop(config_dict = config_dict) 
+        EvalLoop(config_dict = config_dict)
 
 # =============================================================================================== #
 # Execution

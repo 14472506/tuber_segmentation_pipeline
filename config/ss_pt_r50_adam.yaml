@@ -1,0 +1,81 @@
+# Detials
+# 
+#
+
+# Experiment setup
+EXPERIMENT_NAME: ss_pt_r50_adam
+
+# Dataset config
+DATASET:
+  # Training params
+  TRAIN: ./data/jersey_dataset_v4/train
+  TRAIN_JSON: /train.json
+  TRAIN_TRANSFORMS: NULL #"combine_transforms"
+
+  # Validation params
+  VAL: ./data/jersey_dataset_v4/val
+  VAL_JSON: /val.json
+  VAL_TRANSFORMS: NULL
+
+  # Test params
+  TEST: ./data/jersey_dataset_v4/test
+  TEST_JSON: /test.json
+  TEST_TRANSFORMS: NULL
+
+# Dataloader condig
+DATALOADER:
+  # Loader train params
+  TRAIN:
+    BATCH_SIZE: 1
+    SHUFFLE: TRUE
+    WORKERS: 8
+  
+  # Loader validation params
+  VAL:
+    BATCH_SIZE: 1
+    SHUFFLE: FALSE
+    WORKERS: 8
+
+  # Loader test params
+  TEST:
+    BATCH_SIZE: 1
+    SHUFFLE: FALSE
+    WORKERS: 8
+
+# model config
+MODEL:
+  # Model loader
+  MODEL_NAME: Mask_RCNN
+  BACKBONE_NAME: resnet_50
+  
+  # trained flags and backbone weight root
+  TRAINED:
+    FLAG: TRUE
+    SS_FLAG: TRUE
+    BACKBONE_ROOT: backbone_weights/best_model.pth
+
+  # model paramaters
+  TRAINABLE_LAYERS: 5
+  NUM_CLASSES: 2
+  MIN: 800
+  MAX: 1333
+
+# optimizer and scheduler config
+OPTIMIZER:
+  NAME: Adam
+  PARAMS:
+    - 0.00005
+SCHEDULER:
+  NAME: StepLR
+  PARAMS:
+    - 100
+    - 0.1
+
+# loop config
+LOOP:
+  START_EPOCH: 0
+  END_EPOCH: 150
+
+# reporting config
+REPORTING:
+  PRINT_FREQ: 20

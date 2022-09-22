@@ -69,6 +69,7 @@ class TrainLoop():
         self.scheduler = o.scheduler_return()
 
         # loop config
+        self.save_config()
         self.recording_init()
         self.start_epoch = self.cd["LOOP"]["START_EPOCH"]
         self.num_epochs = self.cd["LOOP"]["END_EPOCH"]
@@ -147,7 +148,7 @@ class TrainLoop():
                             collate_fn = collate_function)
         else:
             print("No Validation Dataset Loaded")
-    
+
 
     def recording_init(self):
         """
@@ -174,6 +175,15 @@ class TrainLoop():
             'parameters'        : None
         }
     
+    
+    def save_config(self):
+        """
+        Detials
+        """
+        # saving data in json
+        save_file = self.exp_dir + "/config.json"
+        with open(save_file, "w") as f:
+            json.dump(self.cd, f)
 
     def loop(self):
         """
@@ -411,6 +421,7 @@ class EvalLoop():
         # model location
         m = ModelSelector(config_dict)
         self.model = m.return_model()
+        self.load_model()
         self.model.to(self.device)
 
         # evaluate
@@ -466,9 +477,19 @@ class EvalLoop():
                         collate_fn = collate_function)
 
 
+    def load_model(self):
+        """
+        Detials
+        """
+        # load best model so far
+        model_dir = self.exp_dir + "/ps_best_model.pth"
+        checkpoint = torch.load(model_dir)
+        self.model.load_state_dict(checkpoint["state_dict"])
+
+
     def eval_loop(self):
         """
         Detials
         """
-        mAP = evaluate(self.model, self.test_loader, self.device, self.exp_dir, train_flag=False)
+        mAP = evaluate(self.model, self.test_loader, self.device, self.exp_dir, train_flag=True)
         print(mAP)

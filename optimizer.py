@@ -35,8 +35,8 @@ class OptimizerConf():
         if self.opt_name == "SGD":
             self.optimizer = torch.optim.SGD(self.model_params,
                                 lr=self.opt_params[0],
-                                momentum=self.opt_name[1],
-                                weight_decay = self.opt_name[2])
+                                momentum=self.opt_params[1],
+                                weight_decay = self.opt_params[2])
         elif self.opt_name =="Adam":
             self.optimizer = torch.optim.Adam(self.model_params,
                                 lr=self.opt_params[0])

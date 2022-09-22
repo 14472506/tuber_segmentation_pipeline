@@ -15,9 +15,9 @@ for root, dir, files in os.walk(root):
  
 results_dicts = OrderedDict(results_list)
 
-figure = plt.figure(figsize=(1,1))
+figure = plt.figure(figsize=(1,2))
 rows = 1
-columns = 1
+columns = 2
 h = 50
 w = 50
 count = 1

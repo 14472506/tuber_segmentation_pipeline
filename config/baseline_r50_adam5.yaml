@@ -3,7 +3,7 @@
 #
 
 # Experiment setup
-EXPERIMENT_NAME: baseline_r50_adam_8
+EXPERIMENT_NAME: baseline_r50_adam_5
 
 # Dataset config
 DATASET:

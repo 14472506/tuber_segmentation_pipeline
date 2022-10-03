@@ -15,8 +15,8 @@ for root, dir, files in os.walk(root):
  
 results_dicts = OrderedDict(results_list)
 
-figure = plt.figure(figsize=(1,2))
-rows = 1
+figure = plt.figure(figsize=(3,2))
+rows = 4
 columns = 2
 h = 50
 w = 50
@@ -41,5 +41,5 @@ for key, val in results_dicts.items():
     step_label = str(round(val["step_mAP"][0], 3)) + " @ " + str(val["step_epoch"][0])
     plt.annotate(step_label, (val["step_epoch"][0], val["step_mAP"][0]))
 
-#figure.legend(loc="upper right")
+figure.legend(loc="upper right")
 plt.show()

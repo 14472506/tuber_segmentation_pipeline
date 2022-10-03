@@ -3,7 +3,7 @@
 #
 
 # Experiment setup
-EXPERIMENT_NAME: ss_pt_r50_adam_3
+EXPERIMENT_NAME: ss_pt_r50_adam_8
 
 # Dataset config
 DATASET:

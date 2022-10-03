@@ -3,7 +3,7 @@
 #
 
 # Experiment setup
-EXPERIMENT_NAME: baseline_r50_adam_8
+EXPERIMENT_NAME: ss_pt_r50_adam_5
 
 # Dataset config
 DATASET:
@@ -51,8 +51,8 @@ MODEL:
   # trained flags and backbone weight root
   TRAINED:
     FLAG: TRUE
-    SS_FLAG: FALSE
-    BACKBONE_ROOT: 
+    SS_FLAG: TRUE
+    BACKBONE_ROOT: backbone_weights/best_model.pth
 
   # model paramaters
   TRAINABLE_LAYERS: 5
